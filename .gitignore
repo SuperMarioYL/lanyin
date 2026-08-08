@@ -33,3 +33,7 @@ _build_ctx.json
 # agent scratch
 .claude/
 CLAUDE.md
+.eval_report.json
+.test_report.json
+.*report.json
+.spawn_*
