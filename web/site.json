@@ -1,0 +1,80 @@
+{
+  "schema": 1,
+  "name": "lanyin",
+  "github": "https://github.com/SuperMarioYL/lanyin",
+  "host": "lanyin.lei6393.com",
+  "lang": { "primary": "zh", "toggle": true },
+  "accent": ["#d68a3c"],
+  "hero": {
+    "eyebrow": {
+      "zh": "栏目级音色锁 · 章节自动 · 离线起手 · MIT",
+      "en": "Column voice lock · Auto chapters · Offline start · MIT"
+    },
+    "headline": {
+      "zh": "锁一把音色\n整个栏目不再漂移",
+      "en": "Lock one voice\nThe whole column stops drifting"
+    },
+    "sub": {
+      "zh": "从一段语音样本克隆并锁定栏目音色，写进一个文件；之后这个栏目的每一期都引用同一把音色——不再每篇重新合成、跨期漂移。",
+      "en": "Clone a column voice from one sample, lock it into a file, and from then on every episode of this column references the same voice — no more per-episode re-synthesis, no more cross-episode drift."
+    },
+    "command": "lanyin voice lock --sample ./voice.mp3 --name \"作者签名音色\"",
+    "cta": { "zh": "开始使用", "en": "Get started" },
+    "ctaGithub": { "zh": "在 GitHub 查看", "en": "View on GitHub" }
+  },
+  "advantages": [
+    {
+      "title": { "zh": "锁一次，整个栏目同一把音色", "en": "Lock once. One voice for the whole column." },
+      "body": {
+        "zh": "通用 TTS 每篇重新合成，第 11 期已经对不上第 3 期。栏音从一段语音样本克隆并锁定音色，写进一个文件；从那以后这把音色就是这个栏目的签名——跨期不再漂移。",
+        "en": "Generic TTS re-synthesizes every episode, so episode 11 no longer matches episode 3. LanYin clones a voice from one sample, locks it into a file, and from then on that voice is this column's signature — no more cross-episode drift."
+      },
+      "chips": ["› 一段样本克隆并锁定", "› 跨期共用同一把音色", "› 锁档案随时回看"]
+    },
+    {
+      "title": { "zh": "粘 Markdown，标题自动成章节", "en": "Paste Markdown. Headings become chapters." },
+      "body": {
+        "zh": "章节边界过去靠手贴。把一期公众号文章粘进来，二级标题直接切成章节标记——纯解析、不联网、秒出清单。",
+        "en": "Chapter boundaries used to be hand-stitched. Paste a WeChat episode in and its level-2 headings become chapter marks — pure parsing, no network, an instant list."
+      },
+      "chips": ["› 二级标题即章节", "› 纯解析 · 离线可用", "› 章节清单即时可见"]
+    },
+    {
+      "title": { "zh": "要么用锁定的音色，要么明确停下", "en": "Either the locked voice, or a clear stop" },
+      "body": {
+        "zh": "音色锁的底线是绝不偷偷换一把。语音接口是这个工具唯一的网络依赖；不可用时直接停下并报清晰错误——绝不静默回退到别的音色，那会破坏整栏的一致性。",
+        "en": "The voice lock's bottom line is never silently swapping in a different voice. The voice API is this tool's only network dependency; when it's down the run halts with a clear error — never a silent fallback that would break the whole column's consistency."
+      },
+      "chips": ["› 唯一网络依赖是音色接口", "› 不可用即停下，不回退", "› 保护整栏音色一致"]
+    },
+    {
+      "title": { "zh": "三行命令，到第一个可见结果", "en": "Three commands to a first visible result" },
+      "body": {
+        "zh": "不想跑长流程也能上手：初始化栏目、粘一期文章、回看已锁音色——这三步不需要任何密钥，离线可用；只有克隆新音色时才需要一把 key。",
+        "en": "Get started without running the long pipeline: scaffold a column, paste an episode, re-open the locked voice — these three steps need no key and work offline; only cloning a new voice asks for one."
+      },
+      "chips": ["› 初始化 · 注册 · 回看，离线可用", "› 三行到章节清单", "› 仅克隆音色需密钥"]
+    }
+  ],
+  "scene": {
+    "kind": "hub-nodes",
+    "nodes": ["公众号文章", "音色锁", "MiniMax-H3", "章节"]
+  },
+  "cta": {
+    "headline": {
+      "zh": "给你的栏目一把签名音色",
+      "en": "Give your column a signature voice"
+    },
+    "sub": {
+      "zh": "开源、MIT、一行装好。先把栏目音色锁住。",
+      "en": "Open source, MIT, one line to install. Lock your column's voice first."
+    },
+    "button": { "zh": "在 GitHub 上开始", "en": "Get started on GitHub" }
+  },
+  "footer": {
+    "tag": {
+      "zh": "栏音 LanYin — 把公众号连载锁成统一音色的命令行工具",
+      "en": "LanYin — the CLI that locks a serialized WeChat column to one voice"
+    }
+  }
+}
