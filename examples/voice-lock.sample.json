@@ -1,0 +1,7 @@
+{
+  "column_id": "guigu-zaocha",
+  "voice_id": "voice-cloned-demo-abc123",
+  "voice_prompt": "作者签名音色",
+  "chapter_schema": {"heading_level": 2, "marker": "CHAP"},
+  "locked_at": "2026-08-08T08:14:48+00:00"
+}

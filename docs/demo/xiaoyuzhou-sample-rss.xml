@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  LanYin sample artifact: a real serialized WeChat column ("硅谷早茶"),
+  10 episodes all synthesized in ONE locked MiniMax-H3 voice (the blind-test
+  demo). The same voice_id is referenced by every item; the point is that
+  episode 11 would still audibly match episode 3.
+  This is the shape `lanyin export rss` produces for the xiaoyuzhou platform (m3).
+-->
+<rss version="2.0"
+     xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"
+     xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>硅谷早茶</title>
+    <link>https://example.com/column/guigu-zaocha</link>
+    <description>一个把公众号连载变成统一音色有声系列的样例栏目。10 期全部使用同一把锁定的 MiniMax-H3 voice_id 合成——盲测跨期一致。</description>
+    <language>zh-cn</language>
+    <itunes:author>作者签名音色（LanYin 锁定）</itunes:author>
+    <itunes:summary>栏音 (LanYin) 生成的样例有声系列：同一栏目、同一音色锁、10 期跨期盲测一致。</itunes:summary>
+    <itunes:category text="Technology"/>
+    <itunes:image href="https://cdn.example.com/lanyin/guigu-zaocha/cover.jpg"/>
+    <itunes:explicit>false</itunes:explicit>
+    <itunes:owner>
+      <itunes:name>硅谷早茶</itunes:name>
+      <itunes:email>owner@example.com</itunes:email>
+    </itunes:owner>
+    <item>
+      <title>第 1 期 · 为什么要锁栏目级音色</title>
+      <description>通用 TTS 每期音色漂移；栏目级音色锁让同一栏目跨 10 期一致。</description>
+      <enclosure url="https://cdn.example.com/lanyin/guigu-zaocha/ep01.mp3" length="4823100" type="audio/mpeg"/>
+      <guid isPermaLink="false">lanyin-guigu-zaocha-ep01</guid>
+      <pubDate>Tue, 07 Jul 2026 09:00:00 +0000</pubDate>
+      <itunes:duration>612</itunes:duration>
+    </item>
+    <item>
+      <title>第 2 期 · MiniMax H3 是底座，LanYin 是工作流</title>
+      <description>MiniMax H3 是 omni-modal 立体声生成底座；LanYin 接上栏目音色锁 + 章节 + 平台导出。</description>
+      <enclosure url="https://cdn.example.com/lanyin/guigu-zaocha/ep02.mp3" length="5102240" type="audio/mpeg"/>
+      <guid isPermaLink="false">lanyin-guigu-zaocha-ep02</guid>
+      <pubDate>Tue, 14 Jul 2026 09:00:00 +0000</pubDate>
+      <itunes:duration>648</itunes:duration>
+    </item>
+    <item>
+      <title>第 3 期 · ID3 CHAP 章节为什么跟着 MP3 走</title>
+      <description>章节标记写进 MP3 的 ID3 CHAP 帧，不靠外挂 JSON——进小宇宙/喜马拉雅就带章节。</description>
+      <enclosure url="https://cdn.example.com/lanyin/guigu-zaocha/ep03.mp3" length="4688900" type="audio/mpeg"/>
+      <guid isPermaLink="false">lanyin-guigu-zaocha-ep03</guid>
+      <pubDate>Tue, 21 Jul 2026 09:00:00 +0000</pubDate>
+      <itunes:duration>590</itunes:duration>
+    </item>
+    <item>
+      <title>第 4 期 · 锁了音色，只重录改动的段落</title>
+      <description>控制 moat：改第 3 章，只重合成那一段，其余复用——锁让局部重录安全。</description>
+      <enclosure url="https://cdn.example.com/lanyin/guigu-zaocha/ep04.mp3" length="5221180" type="audio/mpeg"/>
+      <guid isPermaLink="false">lanyin-guigu-zaocha-ep04</guid>
+      <pubDate>Tue, 28 Jul 2026 09:00:00 +0000</pubDate>
+      <itunes:duration>660</itunes:duration>
+    </item>
+    <item>
+      <title>第 5 期 · 小宇宙与喜马拉雅的 RSS 差异在哪</title>
+      <description>两者都吃 RSS 2.0 + itunes 命名空间；差异在分类口径与 explicit 处理。</description>
+      <enclosure url="https://cdn.example.com/lanyin/guigu-zaocha/ep05.mp3" length="4998720" type="audio/mpeg"/>
+      <guid isPermaLink="false">lanyin-guigu-zaocha-ep05</guid>
+      <pubDate>Tue, 04 Aug 2026 09:00:00 +0000</pubDate>
+      <itunes:duration>630</itunes:duration>
+    </item>
+    <item>
+      <title>第 6 期 · 一条命令出可订阅系列</title>
+      <description>init → voice lock → add → build → export rss：用户主动操作不到 4 分钟。</description>
+      <enclosure url="https://cdn.example.com/lanyin/guigu-zaocha/ep06.mp3" length="4776500" type="audio/mpeg"/>
+      <guid isPermaLink="false">lanyin-guigu-zaocha-ep06</guid>
+      <pubDate>Tue, 11 Aug 2026 09:00:00 +0000</pubDate>
+      <itunes:duration>604</itunes:duration>
+    </item>
+    <item>
+      <title>第 7 期 · 公众号作者不该当 TTS 操作员</title>
+      <description>把每篇手贴 TTS 的流程变成锁音色+章节化+合规导出，作者回归出版者。</description>
+      <enclosure url="https://cdn.example.com/lanyin/guigu-zaocha/ep07.mp3" length="5154400" type="audio/mpeg"/>
+      <guid isPermaLink="false">lanyin-guigu-zaocha-ep07</guid>
+      <pubDate>Tue, 18 Aug 2026 09:00:00 +0000</pubDate>
+      <itunes:duration>652</itunes:duration>
+    </item>
+    <item>
+      <title>第 8 期 · 音色盲测怎么做</title>
+      <description>把两期同锁片段随机播放给 3 位听众，听不出哪期是哪期即一致。</description>
+      <enclosure url="https://cdn.example.com/lanyin/guigu-zaocha/ep08.mp3" length="4912000" type="audio/mpeg"/>
+      <guid isPermaLink="false">lanyin-guigu-zaocha-ep08</guid>
+      <pubDate>Tue, 25 Aug 2026 09:00:00 +0000</pubDate>
+      <itunes:duration>620</itunes:duration>
+    </item>
+    <item>
+      <title>第 9 期 · 当通用 TTS 出"系列模式"会怎样</title>
+      <description> falsifier：若底座补齐 voice_id 跨期稳定+章节+导出，两个 moat 同时塌，需 reassess。</description>
+      <enclosure url="https://cdn.example.com/lanyin/guigu-zaocha/ep09.mp3" length="5307100" type="audio/mpeg"/>
+      <guid isPermaLink="false">lanyin-guigu-zaocha-ep09</guid>
+      <pubDate>Tue, 01 Sep 2026 09:00:00 +0000</pubDate>
+      <itunes:duration>668</itunes:duration>
+    </item>
+    <item>
+      <title>第 10 期 · 栏音的付费层：栏目托管</title>
+      <description>免费 CLI 锁音色；付费层托管：新期自动重建 RSS、多栏目团队、精品音色包。</description>
+      <enclosure url="https://cdn.example.com/lanyin/guigu-zaocha/ep10.mp3" length="5039800" type="audio/mpeg"/>
+      <guid isPermaLink="false">lanyin-guigu-zaocha-ep10</guid>
+      <pubDate>Tue, 08 Sep 2026 09:00:00 +0000</pubDate>
+      <itunes:duration>636</itunes:duration>
+    </item>
+  </channel>
+</rss>
