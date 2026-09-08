@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "source_revision": "078ab580e977472b368a0daafd71db07b8866550",
+  "scope": "Markdown heading parsing and local episode-registry round trip. No TTS request or synthesized audio.",
+  "steps": [
+    {
+      "label": "Recorded run",
+      "body": "Markdown heading parsing and local episode-registry round trip. No TTS request or synthesized audio.",
+      "command": ".venv/bin/python examples/presentation_demo.py",
+      "output": "{\n  \"column_id\": \"cache-notes\",\n  \"episodes\": 1,\n  \"chapters\": [\n    {\n      \"title\": \"认识缓存\",\n      \"start_offset\": 0.0,\n      \"end_offset\": 0.0\n    },\n    {\n      \"title\": \"失效策略\",\n      \"start_offset\": 0.0,\n      \"end_offset\": 0.0\n    },\n    {\n      \"title\": \"下一步\",\n      \"start_offset\": 0.0,\n      \"end_offset\": 0.0\n    }\n  ]\n}\nScope: chapter parsing and local episode registry; offsets are placeholders, no audio synthesized."
+    }
+  ]
+}

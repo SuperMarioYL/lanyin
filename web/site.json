@@ -1,80 +1,215 @@
 {
-  "schema": 1,
-  "name": "lanyin",
+  "schema": 3,
+  "name": "栏音 LanYin",
   "github": "https://github.com/SuperMarioYL/lanyin",
   "host": "lanyin.lei6393.com",
-  "lang": { "primary": "zh", "toggle": true },
-  "accent": ["#d68a3c"],
+  "palette": "auto",
+  "lang": {
+    "primary": "en",
+    "toggle": true
+  },
+  "meta": {
+    "visual_style": "neon-particle",
+    "demo_source": "docs/demo-results.json"
+  },
   "hero": {
-    "eyebrow": {
-      "zh": "栏目级音色锁 · 章节自动 · 离线起手 · MIT",
-      "en": "Column voice lock · Auto chapters · Offline start · MIT"
-    },
     "headline": {
-      "zh": "锁一把音色\n整个栏目不再漂移",
-      "en": "Lock one voice\nThe whole column stops drifting"
+      "en": "Organize a column before narrating it",
+      "zh": "先整理栏目，再准备配音"
     },
     "sub": {
-      "zh": "从一段语音样本克隆并锁定栏目音色，写进一个文件；之后这个栏目的每一期都引用同一把音色——不再每篇重新合成、跨期漂移。",
-      "en": "Clone a column voice from one sample, lock it into a file, and from then on every episode of this column references the same voice — no more per-episode re-synthesis, no more cross-episode drift."
+      "en": "LanYin stores column configuration, extracts chapter titles from Markdown and registers episodes. It also provides a MiniMax client for recording a reusable voice profile; complete episode audio production remains unfinished.",
+      "zh": "栏音保存栏目配置，从 Markdown 提取章节标题并登记每期内容，还提供 MiniMax 客户端记录可复用音色档案。完整单集音频制作流程尚未完成。"
     },
-    "command": "lanyin voice lock --sample ./voice.mp3 --name \"作者签名音色\"",
-    "cta": { "zh": "开始使用", "en": "Get started" },
-    "ctaGithub": { "zh": "在 GitHub 查看", "en": "View on GitHub" }
+    "href": "#quickstart"
   },
   "advantages": [
     {
-      "title": { "zh": "锁一次，整个栏目同一把音色", "en": "Lock once. One voice for the whole column." },
-      "body": {
-        "zh": "通用 TTS 每篇重新合成，第 11 期已经对不上第 3 期。栏音从一段语音样本克隆并锁定音色，写进一个文件；从那以后这把音色就是这个栏目的签名——跨期不再漂移。",
-        "en": "Generic TTS re-synthesizes every episode, so episode 11 no longer matches episode 3. LanYin clones a voice from one sample, locks it into a file, and from then on that voice is this column's signature — no more cross-episode drift."
+      "title": {
+        "en": "Markdown chapters",
+        "zh": "Markdown 章节"
       },
-      "chips": ["› 一段样本克隆并锁定", "› 跨期共用同一把音色", "› 锁档案随时回看"]
+      "body": {
+        "en": "A configurable heading level becomes an ordered list of chapter titles.",
+        "zh": "按配置的标题级别提取有序章节列表。"
+      }
     },
     {
-      "title": { "zh": "粘 Markdown，标题自动成章节", "en": "Paste Markdown. Headings become chapters." },
-      "body": {
-        "zh": "章节边界过去靠手贴。把一期公众号文章粘进来，二级标题直接切成章节标记——纯解析、不联网、秒出清单。",
-        "en": "Chapter boundaries used to be hand-stitched. Paste a WeChat episode in and its level-2 headings become chapter marks — pure parsing, no network, an instant list."
+      "title": {
+        "en": "Local episode registry",
+        "zh": "本地单集登记"
       },
-      "chips": ["› 二级标题即章节", "› 纯解析 · 离线可用", "› 章节清单即时可见"]
+      "body": {
+        "en": "Source paths and parsed chapter metadata are saved in .lanyin/episodes.json.",
+        "zh": "来源路径和解析后的章节元数据保存到 .lanyin/episodes.json。"
+      }
     },
     {
-      "title": { "zh": "要么用锁定的音色，要么明确停下", "en": "Either the locked voice, or a clear stop" },
-      "body": {
-        "zh": "音色锁的底线是绝不偷偷换一把。语音接口是这个工具唯一的网络依赖；不可用时直接停下并报清晰错误——绝不静默回退到别的音色，那会破坏整栏的一致性。",
-        "en": "The voice lock's bottom line is never silently swapping in a different voice. The voice API is this tool's only network dependency; when it's down the run halts with a clear error — never a silent fallback that would break the whole column's consistency."
+      "title": {
+        "en": "Reusable voice profile",
+        "zh": "可复用音色档案"
       },
-      "chips": ["› 唯一网络依赖是音色接口", "› 不可用即停下，不回退", "› 保护整栏音色一致"]
+      "body": {
+        "en": "A voice-lock file records the selected provider voice ID and its configuration.",
+        "zh": "音色锁文件记录选定的服务商 Voice ID 及其配置。"
+      }
+    }
+  ],
+  "demo": {
+    "title": {
+      "en": "Run it on a complete example",
+      "zh": "运行完整示例"
+    },
+    "note": {
+      "en": "The example embeds a complete Markdown episode, creates a temporary column, saves its parsed chapters and reloads the registry. It produces metadata only.",
+      "zh": "示例内含完整 Markdown 单集内容，在临时目录创建栏目、保存解析后的章节并重新读取登记文件，只生成元数据。"
+    },
+    "source": "https://github.com/SuperMarioYL/lanyin/blob/main/docs/demo-results.json",
+    "steps": [
+      {
+        "label": "Recorded run",
+        "body": "Markdown heading parsing and local episode-registry round trip. No TTS request or synthesized audio.",
+        "command": ".venv/bin/python examples/presentation_demo.py",
+        "output": "{\n  \"column_id\": \"cache-notes\",\n  \"episodes\": 1,\n  \"chapters\": [\n    {\n      \"title\": \"认识缓存\",\n      \"start_offset\": 0.0,\n      \"end_offset\": 0.0\n    },\n    {\n      \"title\": \"失效策略\",\n      \"start_offset\": 0.0,\n      \"end_offset\": 0.0\n    },\n    {\n      \"title\": \"下一步\",\n      \"start_offset\": 0.0,\n      \"end_offset\": 0.0\n    }\n  ]\n}\nScope: chapter parsing and local episode registry; offsets are placeholders, no audio synthesized.",
+        "image": "/assets/presentation/demo-0-light.svg",
+        "imageDark": "/assets/presentation/demo-0-dark.svg"
+      }
+    ]
+  },
+  "quickstart": {
+    "title": {
+      "en": "Try it locally",
+      "zh": "本地上手"
+    },
+    "body": {
+      "en": "The example embeds a complete Markdown episode, creates a temporary column, saves its parsed chapters and reloads the registry. It produces metadata only.",
+      "zh": "示例内含完整 Markdown 单集内容，在临时目录创建栏目、保存解析后的章节并重新读取登记文件，只生成元数据。"
+    },
+    "steps": [
+      {
+        "title": {
+          "en": "Install from source",
+          "zh": "从源码安装"
+        },
+        "code": "git clone https://github.com/SuperMarioYL/lanyin.git\ncd lanyin\nuv venv --python 3.12\nsource .venv/bin/activate\nuv pip install -e ."
+      },
+      {
+        "title": {
+          "en": "Run the included example",
+          "zh": "运行随仓示例"
+        },
+        "code": ".venv/bin/python examples/presentation_demo.py"
+      }
+    ]
+  },
+  "limitations": [
+    {
+      "en": "lanyin build is a stub and returns exit 2. It does not generate chaptered MP3 files.",
+      "zh": "lanyin build 是占位入口，返回 2，不会生成带章节的 MP3。"
     },
     {
-      "title": { "zh": "三行命令，到第一个可见结果", "en": "Three commands to a first visible result" },
-      "body": {
-        "zh": "不想跑长流程也能上手：初始化栏目、粘一期文章、回看已锁音色——这三步不需要任何密钥，离线可用；只有克隆新音色时才需要一把 key。",
-        "en": "Get started without running the long pipeline: scaffold a column, paste an episode, re-open the locked voice — these three steps need no key and work offline; only cloning a new voice asks for one."
-      },
-      "chips": ["› 初始化 · 注册 · 回看，离线可用", "› 三行到章节清单", "› 仅克隆音色需密钥"]
+      "en": "RSS export needs built episodes; the current add workflow does not produce them. Example RSS URLs are illustrative, not published audio.",
+      "zh": "RSS 导出需要已生成音频的单集，当前 add 流程不会产生它们。示例 RSS URL 是说明性内容，不代表已发布音频。"
+    },
+    {
+      "en": "No voice quality, cross-episode consistency or platform ingestion was measured in the recorded example.",
+      "zh": "记录示例未测量音色质量、跨集一致性或平台导入。"
     }
   ],
   "scene": {
-    "kind": "hub-nodes",
-    "nodes": ["公众号文章", "音色锁", "MiniMax-H3", "章节"]
+    "kind": "neon-graph",
+    "fallback": "/assets/presentation/scene-dark.svg",
+    "fallbackLight": "/assets/presentation/scene-light.svg"
   },
-  "cta": {
-    "headline": {
-      "zh": "给你的栏目一把签名音色",
-      "en": "Give your column a signature voice"
+  "story": {
+    "intro": {
+      "title": {
+        "en": "A concrete task",
+        "zh": "从实际任务出发"
+      },
+      "body": {
+        "en": "A serialized audio project needs consistent episode structure and a clear record of which voice configuration it intends to use. LanYin keeps those preparation steps together so each article can be inspected before synthesis.",
+        "zh": "连载音频项目需要一致的单集结构，也需要明确记录准备使用的音色配置。栏音把这些准备工作放在一起，使每篇文章在合成前都可以检查。"
+      }
     },
-    "sub": {
-      "zh": "开源、MIT、一行装好。先把栏目音色锁住。",
-      "en": "Open source, MIT, one line to install. Lock your column's voice first."
-    },
-    "button": { "zh": "在 GitHub 上开始", "en": "Get started on GitHub" }
-  },
-  "footer": {
-    "tag": {
-      "zh": "栏音 LanYin — 把公众号连载锁成统一音色的命令行工具",
-      "en": "LanYin — the CLI that locks a serialized WeChat column to one voice"
-    }
+    "sections": [
+      {
+        "title": {
+          "en": "Follow the operation",
+          "zh": "处理过程"
+        },
+        "body": {
+          "en": "config.py reads lanyin.toml and manages local registry files. chapter.py uses MarkdownIt to extract headings without raw emphasis syntax. The add command stores chapter data per source path. voice_lock.py uploads a selected reference through MiniMax and persists the resulting profile; synthesize_episode remains a NotImplementedError.",
+          "zh": "config.py 读取 lanyin.toml 并管理本地登记文件；chapter.py 使用 MarkdownIt 提取标题、去掉强调等语法。add 按来源路径保存章节数据。voice_lock.py 通过 MiniMax 上传选定参考音频并保存返回档案；synthesize_episode 目前仍抛出 NotImplementedError。"
+        },
+        "image": {
+          "light": "/assets/presentation/process-light.svg",
+          "dark": "/assets/presentation/process-dark.svg",
+          "alt": {
+            "en": "Follow the operation",
+            "zh": "处理过程"
+          }
+        }
+      },
+      {
+        "title": {
+          "en": "Column metadata owns episode preparation",
+          "zh": "用栏目元数据组织单集准备"
+        },
+        "body": {
+          "en": "config.py reads lanyin.toml and manages local registry files. chapter.py uses MarkdownIt to extract headings without raw emphasis syntax. The add command stores chapter data per source path. voice_lock.py uploads a selected reference through MiniMax and persists the resulting profile; synthesize_episode remains a NotImplementedError.",
+          "zh": "config.py 读取 lanyin.toml 并管理本地登记文件；chapter.py 使用 MarkdownIt 提取标题、去掉强调等语法。add 按来源路径保存章节数据。voice_lock.py 通过 MiniMax 上传选定参考音频并保存返回档案；synthesize_episode 目前仍抛出 NotImplementedError。"
+        },
+        "image": {
+          "light": "/assets/presentation/architecture-light.svg",
+          "dark": "/assets/presentation/architecture-dark.svg",
+          "alt": {
+            "en": "Column metadata owns episode preparation",
+            "zh": "用栏目元数据组织单集准备"
+          }
+        }
+      },
+      {
+        "title": {
+          "en": "Connect the pieces",
+          "zh": "输入与输出"
+        },
+        "body": {
+          "en": "The local parser and registry work without API access. The voice-lock path requires a provider account and uploads a reference sample. generate_rss can format supplied episode metadata, but that helper does not synthesize audio, host files or prove acceptance by a podcast platform.",
+          "zh": "本地解析器和登记功能无需 API。音色锁路径需要服务商账户并上传参考样本。generate_rss 可将给定单集元数据生成 XML，但不会合成音频、托管文件或证明播客平台接收成功。"
+        },
+        "image": {
+          "light": "/assets/presentation/integrations-light.svg",
+          "dark": "/assets/presentation/integrations-dark.svg",
+          "alt": {
+            "en": "Connect the pieces",
+            "zh": "输入与输出"
+          }
+        }
+      }
+    ],
+    "details": [
+      {
+        "title": {
+          "en": "Configuration",
+          "zh": "配置"
+        },
+        "body": {
+          "en": "[column] defines column_id, column_name, chapter_heading_level (default 2) and platform_target (xiaoyuzhou or ximalaya). .lanyin/voice-lock.json stores the voice profile and .lanyin/episodes.json stores sources and chapter titles. MINIMAX_API_KEY is required for provider operations; MINIMAX_GROUP_ID is optional endpoint configuration. Chapter offsets start at zero because timed synthesis is not connected.",
+          "zh": "[column] 定义 column_id、column_name、chapter_heading_level（默认 2）和 platform_target（xiaoyuzhou 或 ximalaya）。.lanyin/voice-lock.json 保存音色档案，.lanyin/episodes.json 保存来源及标题。服务商操作需要 MINIMAX_API_KEY，MINIMAX_GROUP_ID 是可选端点配置。由于带时间信息的合成流程尚未接通，章节偏移初始均为零。"
+        }
+      },
+      {
+        "title": {
+          "en": "Further use",
+          "zh": "进一步使用"
+        },
+        "body": {
+          "en": "Run init in the directory that will own lanyin.toml. add replaces the registry entry with the same source-path string, making repeated registration predictable. voice show prints an existing lock and exits 1 if none exists. To create one, configure the provider variables and use voice lock --sample ./voice.mp3 --name \"Narrator\" with a sample you are authorized to use.",
+          "zh": "在准备保存 lanyin.toml 的目录运行 init。add 会替换来源路径字符串相同的登记条目，便于重复更新。voice show 显示现有音色锁，未创建时返回 1。创建音色锁需配置服务商变量，再以有权使用的参考音频运行 voice lock --sample ./voice.mp3 --name \"Narrator\"。"
+        },
+        "code": "lanyin init my-column --heading-level 2\nlanyin add ./examples/ep01.md\nlanyin voice show"
+      }
+    ]
   }
 }

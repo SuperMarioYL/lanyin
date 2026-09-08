@@ -1,0 +1,82 @@
+{
+  "name": "栏音 LanYin",
+  "tagline": "Organize a column before narrating it",
+  "architecture": {
+    "title": "Column metadata owns episode preparation",
+    "nodes": [
+      {
+        "title": "Column TOML",
+        "detail": "name and heading level"
+      },
+      {
+        "title": "Markdown parser",
+        "detail": "ordered chapter titles"
+      },
+      {
+        "title": "Episode registry",
+        "detail": "source and chapter metadata"
+      },
+      {
+        "title": "Voice profile",
+        "detail": "provider voice ID"
+      }
+    ],
+    "edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ]
+  },
+  "process": {
+    "title": "From input to a useful result",
+    "steps": [
+      {
+        "title": "Read Markdown",
+        "detail": "three complete chapters"
+      },
+      {
+        "title": "Parse headings",
+        "detail": "strip inline formatting"
+      },
+      {
+        "title": "Save and reload",
+        "detail": "one episode / three chapters"
+      }
+    ],
+    "result": "One locally registered episode with three chapter titles; all timing offsets remain zero."
+  },
+  "integrations": {
+    "title": "Supported input and output routes",
+    "items": [
+      {
+        "title": "Markdown",
+        "detail": "heading-based chapter extraction"
+      },
+      {
+        "title": "TOML",
+        "detail": "column configuration"
+      },
+      {
+        "title": "JSON",
+        "detail": "episode and voice metadata"
+      },
+      {
+        "title": "MiniMax API",
+        "detail": "voice-profile request client"
+      },
+      {
+        "title": "RSS helper",
+        "detail": "XML generation from supplied metadata"
+      }
+    ]
+  }
+}

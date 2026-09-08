@@ -1,184 +1,145 @@
-<div align="right"><sub><b>English</b>&nbsp;&nbsp;⇄&nbsp;&nbsp;<a href="./README.md">简体中文</a></sub></div>
+[简体中文](./README.md) · [Website](https://lanyin.lei6393.com) · [GitHub](https://github.com/SuperMarioYL/lanyin)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./assets/hero-dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset="./assets/hero-light.svg">
-  <img src="./assets/hero-light.svg" width="880" alt="LanYin — turn a serialized WeChat column into a voice-locked, subscribable audio series">
+  <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="./assets/presentation/hero-mobile-dark.svg">
+  <source media="(max-width: 600px)" srcset="./assets/presentation/hero-mobile-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/presentation/hero-dark.svg">
+  <img src="./assets/presentation/hero-light.svg" width="960" alt="Hero diagram">
 </picture>
 
-<p align="center"><sub>LanYin is the voice-lock skill turning WeChat columns into subscribable audio for commercial creators.</sub></p>
+# 栏音 LanYin
 
-<p align="center">
-  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="license"></a>
-  <a href="https://github.com/SuperMarioYL/lanyin/releases"><img src="https://img.shields.io/github/v/release/SuperMarioYL/lanyin" alt="release"></a>
-  <a href="https://github.com/SuperMarioYL/lanyin/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/SuperMarioYL/lanyin/ci.yml?label=ci" alt="ci"></a>
-  <img src="https://img.shields.io/badge/python-3.12-blue" alt="python">
-  <img src="https://img.shields.io/badge/Skill-ready-5E5CE6" alt="Skill">
-  <img src="https://img.shields.io/badge/Minimax%20H3-base-10A37F" alt="Minimax H3">
-</p>
+**Organize a column before narrating it**
 
-**Generic TTS drifts voice per episode, chapters are hand-stitched, exports are manual — LanYin locks the column voice in one command, ships chaptered MP3s, and exports 小宇宙/喜马拉雅-compliant RSS.**
+LanYin stores column configuration, extracts chapter titles from Markdown and registers episodes. It also provides a MiniMax client for recording a reusable voice profile; complete episode audio production remains unfinished.
 
-<h2><img src="https://api.iconify.design/tabler:topology-star-3.svg?color=%230071E3&width=24" height="22" align="absmiddle" alt=""> Architecture</h2>
+## Why use it
+
+A serialized audio project needs consistent episode structure and a clear record of which voice configuration it intends to use. LanYin keeps those preparation steps together so each article can be inspected before synthesis.
+
+- **Markdown chapters** — A configurable heading level becomes an ordered list of chapter titles.
+- **Local episode registry** — Source paths and parsed chapter metadata are saved in .lanyin/episodes.json.
+- **Reusable voice profile** — A voice-lock file records the selected provider voice ID and its configuration.
+
+## Architecture
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./assets/atlas-dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset="./assets/atlas-light.svg">
-  <img src="./assets/atlas-light.svg" width="880" alt="Architecture: WeChat Markdown + column voice lock → LanYin CLI → chaptered MP3 + 小宇宙/喜马拉雅 RSS">
+  <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="./assets/presentation/architecture-mobile-dark.svg">
+  <source media="(max-width: 600px)" srcset="./assets/presentation/architecture-mobile-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/presentation/architecture-dark.svg">
+  <img src="./assets/presentation/architecture-light.svg" width="960" alt="Architecture diagram">
 </picture>
 
-One Python process, one `.lanyin/` config dir. The MiniMax H3 call is the only network dependency; if the API is down, the build halts with a clear error — never silently falls back to a different voice (that would break the lock).
+config.py reads lanyin.toml and manages local registry files. chapter.py uses MarkdownIt to extract headings without raw emphasis syntax. The add command stores chapter data per source path. voice_lock.py uploads a selected reference through MiniMax and persists the resulting profile; synthesize_episode remains a NotImplementedError.
 
-## Table of Contents
+| Component | Responsibility |
+| --- | --- |
+| `Column TOML` | name and heading level |
+| `Markdown parser` | ordered chapter titles |
+| `Episode registry` | source and chapter metadata |
+| `Voice profile` | provider voice ID |
 
-- [Why this exists](#why-this-exists)
-- [Install](#install) · [Quickstart](#quickstart)
-- [Usage](#usage)
-- [Demo](#demo)
-- [Configuration](#configuration)
-- [Pricing](#pricing)
-- [Roadmap](#roadmap)
-- [License](#license) · [Share this](#share-this)
+## Install and quickstart
 
-## Why this exists
-
-A WeChat column author running a 20-part science column who wants a 小宇宙 podcast arm must hand-paste each episode through a generic TTS, re-synthesize per piece with a voice that drifts between episodes, hand-stitch chapter boundaries, and hand-format the export for 小宇宙/喜马拉雅. Episode 11 no longer audibly matches episode 3. Minimax H3, the omni-modal stereo base that u/Mobile-Pumpkin7944 surfaced on [r/LocalLLaMA](https://www.reddit.com/r/LocalLLaMA/comments/1ve1mvh/minimaxh3_now_on_huggingface/), owns none of the WeChat-column → audio-series workflow. LanYin is the Skill-style voice-lock layer — the audio analog of the reusable taste/lock pattern the [Shubhamsaboo/awesome-llm-apps](https://github.com/Shubhamsaboo/awesome-llm-apps) community crystallized — that turns H3 into a subscribable Chinese serial-audio asset.
-
-## Install
+Python 3.12+ and uv. No audio service or key is needed for the chapter example.
 
 ```bash
-pip install lanyin        # or: uv tool install lanyin
+git clone https://github.com/SuperMarioYL/lanyin.git
+cd lanyin
+uv venv --python 3.12
+source .venv/bin/activate
+uv pip install -e .
 ```
 
-Requires Python ≥ 3.12. Voice cloning needs a MiniMax H3 API key (see [Configuration](#configuration)); `init` / `add` / `voice show` work offline.
-
-## Quickstart
-
-Cold clone to first visible result, three lines:
+The example embeds a complete Markdown episode, creates a temporary column, saves its parsed chapters and reloads the registry. It produces metadata only.
 
 ```bash
-lanyin init sv-breakfast              # scaffold lanyin.toml
-lanyin add examples/ep01.md           # ## headings become chapter marks
-lanyin voice show                     # read the locked voice (m1)
+.venv/bin/python examples/presentation_demo.py
 ```
 
-<details><summary>sample output</summary>
+## Recorded demo
 
+<picture>
+  <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="./assets/presentation/process-mobile-dark.svg">
+  <source media="(max-width: 600px)" srcset="./assets/presentation/process-mobile-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/presentation/process-dark.svg">
+  <img src="./assets/presentation/process-light.svg" width="960" alt="Process diagram">
+</picture>
+
+One locally registered episode with three chapter titles; all timing offsets remain zero.
+
+```text
+{
+  "column_id": "cache-notes",
+  "episodes": 1,
+  "chapters": [
+    {
+      "title": "认识缓存",
+      "start_offset": 0.0,
+      "end_offset": 0.0
+    },
+    {
+      "title": "失效策略",
+      "start_offset": 0.0,
+      "end_offset": 0.0
+    },
+    {
+      "title": "下一步",
+      "start_offset": 0.0,
+      "end_offset": 0.0
+    }
+  ]
+}
+Scope: chapter parsing and local episode registry; offsets are placeholders, no audio synthesized.
 ```
-╭─ episode registered ──────────────╮
-│ source        ep01.md             │
-│ chapters      3                   │
-│ registry      .lanyin/episodes.json│
-╰────────────────────────────────────╯
-  ch01  Chapter 1 — Why lock the column voice
-  ch02  Chapter 2 — Minimax H3 is the base, LanYin is the workflow
-  ch03  Chapter 3 — One command to a subscribable series
-```
 
-</details>
+The complete command and output are recorded in [docs/demo-results.json](./docs/demo-results.json). Inputs and reproduction code are included in the repository.
 
-Lock a MiniMax H3 voice (needs `MINIMAX_API_KEY`):
+![Existing terminal recording](./assets/demo.gif)
 
-```bash
-export MINIMAX_API_KEY=mm-xxxxxxxx
-lanyin voice lock --sample ./voice.mp3 --name "signature-voice"   # writes .lanyin/voice-lock.json (m1)
-```
+The existing recording is retained for context; the text example above documents the reproducible scenario.
 
 ## Usage
 
-<h2><img src="https://api.iconify.design/tabler:terminal-2.svg?color=%230071E3&width=24" height="22" align="absmiddle" alt=""> Usage</h2>
+Run init in the directory that will own lanyin.toml. add replaces the registry entry with the same source-path string, making repeated registration predictable. voice show prints an existing lock and exits 1 if none exists. To create one, configure the provider variables and use voice lock --sample ./voice.mp3 --name "Narrator" with a sample you are authorized to use.
 
 ```bash
-lanyin init <column-name> --platform xiaoyuzhou          # scaffold lanyin.toml (xiaoyuzhou | ximalaya)
-lanyin voice lock --sample ./voice.mp3 --name "voice"    # clone+lock a MiniMax H3 voice (m1)
-lanyin voice show                                        # print the locked column voice profile (m1)
-lanyin add ./ep01.md                                     # register an episode; ## → chapters (pure)
-lanyin build ./ep01.md                                   # synthesize chaptered MP3 in the locked voice (m2 · roadmap)
-lanyin export rss --platform xiaoyuzhou                  # emit 小宇宙/喜马拉雅-compliant RSS (m3 · roadmap)
+lanyin init my-column --heading-level 2
+lanyin add ./examples/ep01.md
+lanyin voice show
 ```
-
-m1 is implemented: `voice lock` + `voice show` + the chapter parser + the MiniMax H3 client. m2 (synthesis + ID3 CHAP embed) and m3 (batch export) are on the roadmap — the CLI is wired and tells you honestly "not implemented in this milestone" when run.
-
-Full examples live in `examples/`: `ep01.md` (a three-chapter sample column), `voice-lock.sample.json` (a locked-voice profile for offline demo).
-
-## Demo
-
-<h2><img src="https://api.iconify.design/tabler:photo.svg?color=%230071E3&width=24" height="22" align="absmiddle" alt=""> Demo</h2>
-
-![demo](assets/demo.gif)
-
-Script: `docs/demo.tape` (rendered to `assets/demo.gif` with [vhs](https://github.com/charmbracelet/vhs); CI refreshes it on manual dispatch via `.github/workflows/demo.yml`). The run above is the m1 happy path: `init` → seed a locked voice → `voice show` → `add` → the honest m2/m3 roadmap messages.
-
-**Sample audio series** (the `assets.demo` artifact) — a real serialized WeChat column, 10 episodes all synthesized in ONE locked MiniMax H3 voice, blind-testable across episodes:
-
-<details><summary>docs/demo/xiaoyuzhou-sample-rss.xml (小宇宙-compliant RSS, 10 episodes)</summary>
-
-```xml
-<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
-  <channel>
-    <title>sv-breakfast</title>
-    <description>10 episodes all synthesized with the same locked MiniMax-H3 voice_id — blind-testable across episodes.</description>
-    <itunes:author>signature-voice (LanYin locked)</itunes:author>
-    <item>
-      <title>Ep 1 — Why lock the column voice</title>
-      <enclosure url="https://cdn.example.com/lanyin/guigu-zaocha/ep01.mp3" length="4823100" type="audio/mpeg"/>
-      <itunes:duration>612</itunes:duration>
-    </item>
-    <!-- ... 9 more same-locked episodes ... -->
-  </channel>
-</rss>
-```
-
-</details>
-
-The full 10-episode feed is at [`docs/demo/xiaoyuzhou-sample-rss.xml`](./docs/demo/xiaoyuzhou-sample-rss.xml) — the target output shape of m3's `lanyin export rss --platform xiaoyuzhou`.
 
 ## Configuration
 
-`lanyin init` writes `lanyin.toml` (TOML, stdlib-readable, no extra deps); the voice lock and episode registry live under `.lanyin/` (local state, gitignored).
+[column] defines column_id, column_name, chapter_heading_level (default 2) and platform_target (xiaoyuzhou or ximalaya). .lanyin/voice-lock.json stores the voice profile and .lanyin/episodes.json stores sources and chapter titles. MINIMAX_API_KEY is required for provider operations; MINIMAX_GROUP_ID is optional endpoint configuration. Chapter offsets start at zero because timed synthesis is not connected.
 
-| Key | Type | Default | Meaning |
-|---|---|---|---|
-| `column.column_id` | str | slug of column name | Column identifier, written into the voice lock |
-| `column.column_name` | str | — | Human-readable column name |
-| `column.chapter_heading_level` | int | `2` | Which Markdown heading level marks a chapter (`##` = 2) |
-| `column.platform_target` | str | `xiaoyuzhou` | Export target: `xiaoyuzhou` \| `ximalaya` |
-| env `MINIMAX_API_KEY` | str | — | MiniMax H3 API key, required for `voice lock` |
-| env `MINIMAX_GROUP_ID` | str | — | Optional, some MiniMax endpoints want group_id |
+## Integrations and responsibilities
 
-## Pricing
+<picture>
+  <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="./assets/presentation/integrations-mobile-dark.svg">
+  <source media="(max-width: 600px)" srcset="./assets/presentation/integrations-mobile-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/presentation/integrations-dark.svg">
+  <img src="./assets/presentation/integrations-light.svg" width="960" alt="Integrations diagram">
+</picture>
 
-<h2><img src="https://api.iconify.design/tabler:coins.svg?color=%230071E3&width=24" height="22" align="absmiddle" alt=""> Pricing</h2>
+The local parser and registry work without API access. The voice-lock path requires a provider account and uploads a reference sample. generate_rss can format supplied episode metadata, but that helper does not synthesize audio, host files or prove acceptance by a podcast platform.
 
-LanYin is OSS CLI, free and self-hostable. The commercial path is a **hosted column-托管 tier** (post-m1):
+| Route | Implemented role |
+| --- | --- |
+| Markdown | heading-based chapter extraction |
+| TOML | column configuration |
+| JSON | episode and voice metadata |
+| MiniMax API | voice-profile request client |
+| RSS helper | XML generation from supplied metadata |
 
-- **Free CLI**: lock the voice, chaptered MP3s, local RSS export — this repo.
-- **Column hosting ¥39/month per column** (single author): paste a new episode and the 小宇宙/喜马拉雅 RSS auto-rebuilds in the locked voice — you pay so you don't run the CLI every Tuesday.
-- **Team ¥99/month** (≤5 columns, ≤3 seats): multi-column team workspace + premium licensed voice pack (beyond the free MiniMax H3 presets).
+## Limits and next steps
 
-The voice-lock + chapter assets are the moat; the hosted tier just rents them. Smallest "credit card" demo: author pastes ep11 markdown into the hosted workspace → RSS auto-rebuilds in the locked voice → one-click push to 小宇宙. The free CLI proves the voice lock; the paid path proves "I don't want to run the CLI every Tuesday."
+- lanyin build is a stub and returns exit 2. It does not generate chaptered MP3 files.
+- RSS export needs built episodes; the current add workflow does not produce them. Example RSS URLs are illustrative, not published audio.
+- No voice quality, cross-episode consistency or platform ingestion was measured in the recorded example.
 
-> After pushing, add topics: `gh repo edit --add-topic tts --add-topic podcast --add-topic minimax --add-topic voice-clone --add-topic wechat`
+Implemented: column setup, Markdown chapters, episode registry, provider client and voice-profile persistence. Next are chapter synthesis, timed ID3 frames, audio concatenation and a complete export workflow. Hosting, subscriptions and voice marketplaces are not implemented.
 
-## Roadmap
+## License and contributions
 
-<h2><img src="https://api.iconify.design/tabler:map-2.svg?color=%230071E3&width=24" height="22" align="absmiddle" alt=""> Roadmap</h2>
-
-- [x] **m1 column voice lock** — `voice lock` writes `.lanyin/voice-lock.json`; `voice show` prints the locked profile; the MiniMax H3 client + chapter parser are in place.
-- [ ] **m2 chaptered synthesis** — `lanyin build ./ep01.md` synthesizes `dist/ep01.mp3` in the locked voice; ID3 `CHAP` frames from `##` headings; a second episode in the same lock audibly matches.
-- [ ] **m3 series export** — `lanyin build` (no args, batch) + `lanyin export rss --platform xiaoyuzhou|ximalaya` emits platform-compliant RSS.
-- [ ] **Future** — hosted column-托管 tier; voice marketplace; multi-column management; if 豆包/CosyVoice ship stable cross-session voice IDs + chapter markup + platform export, reassess (§8 falsifier).
-
-## License
-
-<h2><img src="https://api.iconify.design/tabler:license.svg?color=%230071E3&width=24" height="22" align="absmiddle" alt=""> License</h2>
-
-MIT — see [LICENSE](./LICENSE). File an issue or PR at [issues](https://github.com/SuperMarioYL/lanyin/issues).
-
-## Share this
-
-```
-LanYin — the Skill that turns a serialized WeChat column into a voice-locked audio series. One voice_id locked per column, ## headings become ID3 chapters, one command exports 小宇宙/喜马拉雅 RSS. A blind 10-episode match is the moat. https://github.com/SuperMarioYL/lanyin
-```
-
-<p align="center"><sub><a href="./LICENSE">MIT</a> © 2026 SuperMarioYL</sub></p>
+See [LICENSE](./LICENSE). When reporting an issue, include a minimal input, the command, and the observed output.

@@ -1,0 +1,38 @@
+{
+  "mode": "auto",
+  "id": "cc56e6-e76abb-cdacf6-221be3c1ce1a",
+  "identity": "https://github.com/supermarioyl/lanyin",
+  "primary": "#cc56e6",
+  "secondary": "#e76abb",
+  "highlight": "#cdacf6",
+  "dark": {
+    "bg": "#090712",
+    "panel": "#12101f",
+    "code": "#120d1d",
+    "ink": "#f5eefd",
+    "muted": "#ad9cc4",
+    "line": "#341841",
+    "primary": "#cc56e6",
+    "secondary": "#e76abb",
+    "highlight": "#cdacf6",
+    "accent": "#cc56e6",
+    "buttonStart": "#b04ac7",
+    "buttonEnd": "#b65393",
+    "buttonText": "#ffffff"
+  },
+  "light": {
+    "bg": "#fdf9fe",
+    "panel": "#fcf7fe",
+    "code": "#fbf3fd",
+    "ink": "#231630",
+    "muted": "#6d5e88",
+    "line": "#efcbf7",
+    "primary": "#a747bd",
+    "secondary": "#ad4f8c",
+    "highlight": "#7d6895",
+    "accent": "#a747bd",
+    "buttonStart": "#b04ac7",
+    "buttonEnd": "#b65393",
+    "buttonText": "#ffffff"
+  }
+}
