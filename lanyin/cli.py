@@ -126,7 +126,11 @@ def voice_lock_cmd(
 @voice_app.command("show")
 def voice_show_cmd() -> None:
     """Print the locked column voice profile (m1)."""
-    lock = voice_lock.load_lock()
+    try:
+        lock = voice_lock.load_lock()
+    except voice_lock.VoiceLockError as exc:
+        err.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1)
     if lock is None:
         err.print(
             f"[yellow]no voice lock found at {lock_path()}[/yellow]\n"
@@ -159,6 +163,9 @@ def add_cmd(
     if cfg is None:
         err.print("[red]no lanyin.toml here — run `lanyin init <name>` first.[/red]")
         raise typer.Exit(code=1)
+    # resolve so one file maps to one entry regardless of how it is spelled
+    # (./ep01.md, ep01.md, /abs/ep01.md) or which cwd the command runs from.
+    source = source.resolve()
     chapters = chapter.parse_markdown_file(source, heading_level=cfg.chapter_heading_level)
     registry = load_episodes()
     entry = {
@@ -166,7 +173,7 @@ def add_cmd(
         "column_id": cfg.column_id,
         "chapters": [c.model_dump() for c in chapters],
     }
-    # de-dup by source path
+    # de-dup by resolved source path
     registry = [e for e in registry if e.get("source") != str(source)]
     registry.append(entry)
     save_episodes(registry)

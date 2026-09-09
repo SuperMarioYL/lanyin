@@ -14,6 +14,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from pydantic import ValidationError
+
 from . import tts_minimax
 from .config import lock_dir, lock_path, require_config
 from .models import ChapterSchema, ColumnVoiceLock
@@ -79,11 +81,19 @@ def save_lock(lock: ColumnVoiceLock, *, root: Path | str | None = None) -> Path:
 
 
 def load_lock(root: Path | str | None = None) -> ColumnVoiceLock | None:
-    """Read the column voice lock, or ``None`` if none has been locked yet."""
+    """Read the column voice lock, or ``None`` if none has been locked yet.
+
+    A lock file that exists but does not parse raises ``VoiceLockError`` — a
+    corrupt lock must never be treated as "no lock" (that would silently invite
+    re-locking to a different voice), nor leak a pydantic traceback.
+    """
     path = lock_path(root)
     if not path.exists():
         return None
-    return ColumnVoiceLock.model_validate_json(path.read_text(encoding="utf-8"))
+    try:
+        return ColumnVoiceLock.model_validate_json(path.read_text(encoding="utf-8"))
+    except ValidationError as exc:
+        raise VoiceLockError(f"corrupt voice lock at {path}: {exc.errors()[0]['msg']}") from exc
 
 
 def show_lock(lock: ColumnVoiceLock) -> dict[str, Any]:

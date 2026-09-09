@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "lanyin"
-version = "0.1.0"
+version = "0.2.0"
 description = "Prepare serialized audio columns with Markdown chapter parsing, a local episode registry and MiniMax voice-profile locking."
 readme = "README.md"
 license = { text = "MIT" }

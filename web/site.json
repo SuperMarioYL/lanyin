@@ -217,8 +217,8 @@
           "zh": "进一步使用"
         },
         "body": {
-          "en": "Run init in the directory that will own lanyin.toml. add replaces the registry entry with the same source-path string, making repeated registration predictable. voice show prints an existing lock and exits 1 if none exists. To create one, configure the provider variables and use voice lock --sample ./voice.mp3 --name \"Narrator\" with a sample you are authorized to use.",
-          "zh": "在准备保存 lanyin.toml 的目录运行 init。add 会替换来源路径字符串相同的登记条目，便于重复更新。voice show 显示现有音色锁，未创建时返回 1。创建音色锁需配置服务商变量，再以有权使用的参考音频运行 voice lock --sample ./voice.mp3 --name \"Narrator\"。"
+          "en": "Run init in the directory that will own lanyin.toml. add replaces the registry entry for the same source file: paths are normalized, so ./ep01.md and an absolute path update one entry. voice show prints an existing lock and exits 1 if none exists. To create one, configure the provider variables and use voice lock --sample ./voice.mp3 --name \"Narrator\" with a sample you are authorized to use.",
+          "zh": "在准备保存 lanyin.toml 的目录运行 init。add 会替换同一来源文件的登记条目：路径已归一化，./ep01.md 与绝对路径指向同一条记录。voice show 显示现有音色锁，未创建时返回 1。创建音色锁需配置服务商变量，再以有权使用的参考音频运行 voice lock --sample ./voice.mp3 --name \"Narrator\"。"
         },
         "code": "lanyin init my-column --heading-level 2\nlanyin add ./examples/ep01.md\nlanyin voice show"
       }

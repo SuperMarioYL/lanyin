@@ -13,7 +13,7 @@ import re
 import tomllib
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 CONFIG_FILENAME = "lanyin.toml"
 LOCK_DIRNAME = ".lanyin"
@@ -77,7 +77,12 @@ def load_config(root: Path | str | None = None) -> LanyinConfig | None:
     except tomllib.TOMLDecodeError as exc:  # pragma: no cover - defensive
         raise ConfigError(f"invalid {CONFIG_FILENAME}: {exc}") from exc
     table = data.get("column", data)
-    return LanyinConfig(**table)
+    try:
+        return LanyinConfig(**table)
+    except ValidationError as exc:
+        # hand-edited configs surface as a clean ConfigError, not a pydantic
+        # traceback, so the CLI's error channel stays single.
+        raise ConfigError(f"invalid {CONFIG_FILENAME}: {exc.errors()[0]['msg']}") from exc
 
 
 def require_config(root: Path | str | None = None) -> LanyinConfig:

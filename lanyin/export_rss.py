@@ -13,7 +13,7 @@ CLI reports the m3 roadmap honestly instead of emitting an empty feed.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from xml.sax.saxutils import escape
 
@@ -25,19 +25,38 @@ class ExportError(Exception):
     pass
 
 
+def _attr(value) -> str:
+    """Escape a value for use inside a double-quoted XML attribute.
+
+    ``escape`` alone leaves ``"`` untouched, so a value containing a double
+    quote would terminate the attribute early and produce malformed XML.
+    """
+    return escape(str(value), {'"': "&quot;"})
+
+
+def _rfc822(dt: datetime) -> str:
+    """Render ``dt`` as an RFC 822 date with its own UTC offset."""
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    seconds = int((dt.utcoffset() or timedelta(0)).total_seconds())
+    sign = "+" if seconds >= 0 else "-"
+    hh, mm = divmod(abs(seconds) // 60, 60)
+    return dt.strftime("%a, %d %b %Y %H:%M:%S ") + f"{sign}{hh:02d}{mm:02d}"
+
+
+def _iso(dt: str | datetime | None) -> str:
+    if dt is None:
+        return _rfc822(datetime.now(timezone.utc))
+    if isinstance(dt, datetime):
+        return _rfc822(dt)
+    return str(dt)
+
+
 # 小宇宙 (Xiaoyuzhou) and 喜马拉雅 (Ximalaya) both accept RSS 2.0 with the
 # iTunes podcast namespace; the per-platform variance is small (category tax
 # required by 喜马拉雅, itunes:explicit handling). The default namespace set
 # below satisfies both validators.
 _ITUNES_NS = "http://www.itunes.com/dtds/podcast-1.0.dtd"
-
-
-def _iso(dt: str | datetime | None) -> str:
-    if dt is None:
-        return datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000")
-    if isinstance(dt, datetime):
-        return dt.strftime("%a, %d %b %Y %H:%M:%S +0000")
-    return str(dt)
 
 
 def generate_rss(
@@ -71,7 +90,7 @@ def generate_rss(
 
     image_block = ""
     if image:
-        image_block = f'<itunes:image href="{escape(str(image))}"/>'
+        image_block = f'<itunes:image href="{_attr(image)}"/>'
 
     return (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -85,7 +104,7 @@ def generate_rss(
         f"    <language>{language}</language>\n"
         f"    <itunes:author>{author}</itunes:author>\n"
         f"    <itunes:summary>{description}</itunes:summary>\n"
-        f"    <itunes:category text=\"{category}\"/>\n"
+        f"    <itunes:category text=\"{_attr(category)}\"/>\n"
         f"    {image_block}\n".rstrip()
         + "\n"
         + "    <itunes:explicit>false</itunes:explicit>\n"
@@ -97,10 +116,13 @@ def generate_rss(
 
 
 def _render_item(ep: dict) -> str:
-    title = escape(str(ep.get("title", "Untitled episode")))
-    audio_url = escape(str(ep.get("audio_url", ep.get("audio_path", ""))))
+    # raw values feed the guid fallback; each position escapes exactly once
+    title_raw = str(ep.get("title", "Untitled episode"))
+    audio_raw = str(ep.get("audio_url", ep.get("audio_path", "")))
+    title = escape(title_raw)
+    audio_url = _attr(audio_raw)
     duration = str(ep.get("duration", ep.get("duration_seconds", "")))
-    guid = escape(str(ep.get("guid", audio_url or title)))
+    guid = escape(str(ep.get("guid", audio_raw or title_raw)))
     pub = escape(_iso(ep.get("pub_date", ep.get("published_at"))))
     desc = escape(str(ep.get("description", "")))
     size = str(ep.get("size_bytes", "0"))
