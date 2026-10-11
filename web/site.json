@@ -10,7 +10,8 @@
   },
   "meta": {
     "visual_style": "neon-particle",
-    "demo_source": "docs/demo-results.json"
+    "demo_source": "docs/demo-results.json",
+    "content_version": 1
   },
   "hero": {
     "headline": {
@@ -18,8 +19,8 @@
       "zh": "先整理栏目，再准备配音"
     },
     "sub": {
-      "en": "LanYin stores column configuration, extracts chapter titles from Markdown and registers episodes. It also provides a MiniMax client for recording a reusable voice profile; complete episode audio production remains unfinished.",
-      "zh": "栏音保存栏目配置，从 Markdown 提取章节标题并登记每期内容，还提供 MiniMax 客户端记录可复用音色档案。完整单集音频制作流程尚未完成。"
+      "en": "LanYin stores column configuration, extracts chapter titles from Markdown and registers episodes. It also provides a MiniMax client for recording a reusable voice profile; lanyin build synthesizes each chapter in the locked voice and embeds ID3 chapter marks.",
+      "zh": "栏音保存栏目配置，从 Markdown 提取章节标题并登记每期内容，还提供 MiniMax 客户端记录可复用音色档案；lanyin build 以锁定的音色按章节合成单集音频并嵌入 ID3 章节标记。"
     },
     "href": "#quickstart"
   },
@@ -104,12 +105,12 @@
   },
   "limitations": [
     {
-      "en": "lanyin build is a stub and returns exit 2. It does not generate chaptered MP3 files.",
-      "zh": "lanyin build 是占位入口，返回 2，不会生成带章节的 MP3。"
+      "en": "lanyin build requires a voice lock and MINIMAX_API_KEY: it calls the provider once per chapter, so it cannot run in the offline examples.",
+      "zh": "lanyin build 需要已创建的音色锁和 MINIMAX_API_KEY：它逐章调用服务商接口，离线示例无法运行完整合成。"
     },
     {
-      "en": "RSS export needs built episodes; the current add workflow does not produce them. Example RSS URLs are illustrative, not published audio.",
-      "zh": "RSS 导出需要已生成音频的单集，当前 add 流程不会产生它们。示例 RSS URL 是说明性内容，不代表已发布音频。"
+      "en": "RSS export needs built episodes. Example RSS URLs are illustrative, not published audio.",
+      "zh": "RSS 导出需要已生成音频的单集。示例 RSS URL 是说明性内容，不代表已发布音频。"
     },
     {
       "en": "No voice quality, cross-episode consistency or platform ingestion was measured in the recorded example.",
@@ -139,8 +140,8 @@
           "zh": "处理过程"
         },
         "body": {
-          "en": "config.py reads lanyin.toml and manages local registry files. chapter.py uses MarkdownIt to extract headings without raw emphasis syntax. The add command stores chapter data per source path. voice_lock.py uploads a selected reference through MiniMax and persists the resulting profile; synthesize_episode remains a NotImplementedError.",
-          "zh": "config.py 读取 lanyin.toml 并管理本地登记文件；chapter.py 使用 MarkdownIt 提取标题、去掉强调等语法。add 按来源路径保存章节数据。voice_lock.py 通过 MiniMax 上传选定参考音频并保存返回档案；synthesize_episode 目前仍抛出 NotImplementedError。"
+          "en": "config.py reads lanyin.toml and manages local registry files. chapter.py uses MarkdownIt to extract headings without raw emphasis syntax. The add command stores chapter data per resolved source path. voice_lock.py uploads a selected reference through MiniMax and persists the resulting profile; synthesize_episode synthesizes each chapter in the locked voice, concatenates the audio and embeds the chapter frames.",
+          "zh": "config.py 读取 lanyin.toml 并管理本地登记文件；chapter.py 使用 MarkdownIt 提取标题、去掉强调等语法。add 按归一化的来源路径保存章节数据。voice_lock.py 通过 MiniMax 上传选定参考音频并保存返回档案；synthesize_episode 以锁定的音色逐章合成、拼接音频并嵌入章节帧。"
         },
         "image": {
           "light": "/assets/presentation/process-light.svg",
@@ -161,8 +162,8 @@
           "zh": "用栏目元数据组织单集准备"
         },
         "body": {
-          "en": "config.py reads lanyin.toml and manages local registry files. chapter.py uses MarkdownIt to extract headings without raw emphasis syntax. The add command stores chapter data per source path. voice_lock.py uploads a selected reference through MiniMax and persists the resulting profile; synthesize_episode remains a NotImplementedError.",
-          "zh": "config.py 读取 lanyin.toml 并管理本地登记文件；chapter.py 使用 MarkdownIt 提取标题、去掉强调等语法。add 按来源路径保存章节数据。voice_lock.py 通过 MiniMax 上传选定参考音频并保存返回档案；synthesize_episode 目前仍抛出 NotImplementedError。"
+          "en": "config.py reads lanyin.toml and manages local registry files. chapter.py uses MarkdownIt to extract headings without raw emphasis syntax. The add command stores chapter data per resolved source path. voice_lock.py uploads a selected reference through MiniMax and persists the resulting profile; synthesize_episode synthesizes each chapter in the locked voice, concatenates the audio and embeds the chapter frames.",
+          "zh": "config.py 读取 lanyin.toml 并管理本地登记文件；chapter.py 使用 MarkdownIt 提取标题、去掉强调等语法。add 按归一化的来源路径保存章节数据。voice_lock.py 通过 MiniMax 上传选定参考音频并保存返回档案；synthesize_episode 以锁定的音色逐章合成、拼接音频并嵌入章节帧。"
         },
         "image": {
           "light": "/assets/presentation/architecture-light.svg",
@@ -207,8 +208,8 @@
           "zh": "配置"
         },
         "body": {
-          "en": "[column] defines column_id, column_name, chapter_heading_level (default 2) and platform_target (xiaoyuzhou or ximalaya). .lanyin/voice-lock.json stores the voice profile and .lanyin/episodes.json stores sources and chapter titles. MINIMAX_API_KEY is required for provider operations; MINIMAX_GROUP_ID is optional endpoint configuration. Chapter offsets start at zero because timed synthesis is not connected.",
-          "zh": "[column] 定义 column_id、column_name、chapter_heading_level（默认 2）和 platform_target（xiaoyuzhou 或 ximalaya）。.lanyin/voice-lock.json 保存音色档案，.lanyin/episodes.json 保存来源及标题。服务商操作需要 MINIMAX_API_KEY，MINIMAX_GROUP_ID 是可选端点配置。由于带时间信息的合成流程尚未接通，章节偏移初始均为零。"
+          "en": "[column] defines column_id, column_name, chapter_heading_level (default 2) and platform_target (xiaoyuzhou or ximalaya). .lanyin/voice-lock.json stores the voice profile and .lanyin/episodes.json stores sources and chapter titles. MINIMAX_API_KEY is required for provider operations; MINIMAX_GROUP_ID is optional endpoint configuration. After a build, chapter offsets come from the measured duration of each chapter's audio.",
+          "zh": "[column] 定义 column_id、column_name、chapter_heading_level（默认 2）和 platform_target（xiaoyuzhou 或 ximalaya）。.lanyin/voice-lock.json 保存音色档案，.lanyin/episodes.json 保存来源及标题。服务商操作需要 MINIMAX_API_KEY，MINIMAX_GROUP_ID 是可选端点配置。build 之后，章节偏移来自每个章节音频的实际时长。"
         }
       },
       {

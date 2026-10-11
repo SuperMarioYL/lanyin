@@ -11,7 +11,7 @@
 
 **先整理栏目，再准备配音**
 
-栏音保存栏目配置，从 Markdown 提取章节标题并登记每期内容，还提供 MiniMax 客户端记录可复用音色档案。完整单集音频制作流程尚未完成。
+栏音保存栏目配置，从 Markdown 提取章节标题并登记每期内容，还提供 MiniMax 客户端记录可复用音色档案；lanyin build 以锁定的音色按章节合成单集音频并嵌入 ID3 章节标记。
 
 ## 为什么需要它
 
@@ -30,7 +30,7 @@
   <img src="./assets/presentation/architecture-light.svg" width="960" alt="Architecture diagram">
 </picture>
 
-config.py 读取 lanyin.toml 并管理本地登记文件；chapter.py 使用 MarkdownIt 提取标题、去掉强调等语法。add 按来源路径保存章节数据。voice_lock.py 通过 MiniMax 上传选定参考音频并保存返回档案；synthesize_episode 目前仍抛出 NotImplementedError。
+config.py 读取 lanyin.toml 并管理本地登记文件；chapter.py 使用 MarkdownIt 提取标题、去掉强调等语法。add 按归一化的来源路径保存章节数据。voice_lock.py 通过 MiniMax 上传选定参考音频并保存返回档案；synthesize_episode 以锁定的音色逐章合成、拼接音频并嵌入章节帧。
 
 | 组件 | 职责 |
 | --- | --- |
@@ -101,7 +101,7 @@ Scope: chapter parsing and local episode registry; offsets are placeholders, no 
 
 ## 用法
 
-在准备保存 lanyin.toml 的目录运行 init。add 会替换来源路径字符串相同的登记条目，便于重复更新。voice show 显示现有音色锁，未创建时返回 1。创建音色锁需配置服务商变量，再以有权使用的参考音频运行 voice lock --sample ./voice.mp3 --name "Narrator"。
+在准备保存 lanyin.toml 的目录运行 init。add 会替换同一来源文件的登记条目：路径已归一化，./ep01.md 与绝对路径指向同一条记录。voice show 显示现有音色锁，未创建时返回 1。创建音色锁需配置服务商变量，再以有权使用的参考音频运行 voice lock --sample ./voice.mp3 --name "Narrator"。
 
 ```bash
 lanyin init my-column --heading-level 2
@@ -111,7 +111,7 @@ lanyin voice show
 
 ## 配置
 
-[column] 定义 column_id、column_name、chapter_heading_level（默认 2）和 platform_target（xiaoyuzhou 或 ximalaya）。.lanyin/voice-lock.json 保存音色档案，.lanyin/episodes.json 保存来源及标题。服务商操作需要 MINIMAX_API_KEY，MINIMAX_GROUP_ID 是可选端点配置。由于带时间信息的合成流程尚未接通，章节偏移初始均为零。
+[column] 定义 column_id、column_name、chapter_heading_level（默认 2）和 platform_target（xiaoyuzhou 或 ximalaya）。.lanyin/voice-lock.json 保存音色档案，.lanyin/episodes.json 保存来源及标题。服务商操作需要 MINIMAX_API_KEY，MINIMAX_GROUP_ID 是可选端点配置。build 之后，章节偏移来自每个章节音频的实际时长。
 
 ## 集成与职责分工
 
@@ -134,11 +134,11 @@ lanyin voice show
 
 ## 限制与后续方向
 
-- lanyin build 是占位入口，返回 2，不会生成带章节的 MP3。
-- RSS 导出需要已生成音频的单集，当前 add 流程不会产生它们。示例 RSS URL 是说明性内容，不代表已发布音频。
+- lanyin build 需要已创建的音色锁和 MINIMAX_API_KEY：它逐章调用服务商接口，离线示例无法运行完整合成。
+- RSS 导出需要已生成音频的单集。示例 RSS URL 是说明性内容，不代表已发布音频。
 - 记录示例未测量音色质量、跨集一致性或平台导入。
 
-已实现栏目初始化、Markdown 章节、单集登记、服务商客户端和音色档案保存。后续需完成章节合成、带时间的 ID3 帧、音频拼接和完整导出流程。托管、订阅和音色市场尚未实现。
+已实现栏目初始化、Markdown 章节、单集登记、服务商客户端、音色档案保存和按章节合成（含带时间信息的 ID3 章节帧与音频拼接）。托管、订阅和音色市场尚未实现。
 
 ## 许可与贡献
 

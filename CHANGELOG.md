@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-10-12
+
+### Fixed
+
+- `generate_rss` no longer double-escapes the `itunes:owner` name when
+  `owner_name` is omitted: the fallback now uses the raw author value and each
+  XML position is escaped exactly once, so an author like `A & B` decodes
+  correctly instead of rendering as `A &amp; B`.
+- `pubDate` rendering is locale-independent: weekday and month names come from
+  fixed English tables instead of locale-dependent `strftime`, so a CLI run
+  under e.g. zh_CN no longer emits invalid RFC 822 dates (`六, 12 9月 2026 ...`).
+- `lanyin add` on a file that is not valid UTF-8 (e.g. a GBK export) now fails
+  with a clean one-line `ChapterError` message instead of a raw
+  `UnicodeDecodeError` traceback.
+- README.md and README.en.md no longer document the pre-v0.2.0 string-based
+  registry de-dup; both now describe the resolved-path normalization that
+  ships since 0.2.0 (matching the website copy).
+
+### Added
+
+- The real episode build (`lanyin build`): each chapter section is synthesized
+  in the locked column voice, the MP3 chunks are concatenated, cumulative ID3
+  `CHAP`/`CTOC` offsets are embedded from the measured per-chapter durations,
+  the file is written to `dist/<stem>.mp3`, and the registry entry is updated
+  with `audio_path`, `size_bytes` and `duration_seconds`. Builds require a
+  voice lock and `MINIMAX_API_KEY`; a failed API call halts with a clear error
+  and never falls back to a different voice. `lanyin build` without arguments
+  batch-builds every registered episode.
+
 ## [0.2.0] - 2026-09-10
 
 ### Fixed

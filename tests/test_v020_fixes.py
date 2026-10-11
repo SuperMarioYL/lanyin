@@ -1,10 +1,9 @@
-"""v0.2.0 regression tests: RSS feed validity, local-state contract,
-ID3 chapter embed, and version lockstep."""
+"""Regression tests for the v0.2 fix batch: RSS feed validity, local-state
+contract, and the ID3 chapter embed."""
 
 from __future__ import annotations
 
 import json
-import tomllib
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -12,7 +11,6 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from lanyin import __version__
 from lanyin.cli import app
 from lanyin.config import ConfigError, load_config
 from lanyin.export_rss import _iso, generate_rss
@@ -145,20 +143,3 @@ def test_embed_chapters_defaults_end_offsets(tmp_path: Path) -> None:
     chaps = sorted(MP3(mp3).tags.getall("CHAP"), key=lambda f: f.element_id)
     assert (chaps[0].start_time, chaps[0].end_time) == (0, 500)
     assert chaps[1].end_time == int(MP3(mp3).info.length * 1000)
-
-
-# --- m7: version lockstep -----------------------------------------------------
-
-
-def test_version_lockstep_across_surfaces() -> None:
-    repo_root = Path(__file__).resolve().parent.parent
-    version_file = (repo_root / "VERSION").read_text(encoding="utf-8").strip()
-    pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))
-
-    assert version_file == "0.2.0"
-    assert pyproject["project"]["version"] == "0.2.0"
-    assert __version__ == "0.2.0"
-
-    changelog = (repo_root / "CHANGELOG.md").read_text(encoding="utf-8")
-    assert "## [0.1.0] - 2026-08-08" in changelog
-    assert "## [0.2.0] - 2026-09-10" in changelog

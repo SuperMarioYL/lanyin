@@ -37,3 +37,6 @@ CLAUDE.md
 .test_report.json
 .*report.json
 .spawn_*
+
+# uv lockfile (CI installs from pyproject directly)
+uv.lock

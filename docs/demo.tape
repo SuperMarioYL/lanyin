@@ -59,6 +59,6 @@ Type "lanyin export rss --platform xiaoyuzhou"
 Enter
 Sleep 1s
 
-Type "# m1 done: voice locked, episodes registered. m2 build + m3 export ship next."
+Type "# voice locked, episodes registered. build + rss export need MINIMAX_API_KEY."
 Enter
 Sleep 2s

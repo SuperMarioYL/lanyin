@@ -34,14 +34,28 @@ def _attr(value) -> str:
     return escape(str(value), {'"': "&quot;"})
 
 
+_WEEKDAYS = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+_MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun",
+           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+
 def _rfc822(dt: datetime) -> str:
-    """Render ``dt`` as an RFC 822 date with its own UTC offset."""
+    """Render ``dt`` as an RFC 822 date with its own UTC offset.
+
+    Weekday and month names come from fixed English tables, not ``strftime``:
+    ``%a``/``%b`` follow the process locale, so a user running under e.g.
+    zh_CN would otherwise emit ``六, 12 9月 2026 ...`` which is not a valid
+    RFC 822 date and can be rejected by feed validators.
+    """
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
     seconds = int((dt.utcoffset() or timedelta(0)).total_seconds())
     sign = "+" if seconds >= 0 else "-"
     hh, mm = divmod(abs(seconds) // 60, 60)
-    return dt.strftime("%a, %d %b %Y %H:%M:%S ") + f"{sign}{hh:02d}{mm:02d}"
+    return (
+        f"{_WEEKDAYS[dt.weekday()]}, {dt.day:02d} {_MONTHS[dt.month - 1]} {dt.year:04d} "
+        f"{dt.hour:02d}:{dt.minute:02d}:{dt.second:02d} {sign}{hh:02d}{mm:02d}"
+    )
 
 
 def _iso(dt: str | datetime | None) -> str:
@@ -72,15 +86,17 @@ def generate_rss(
     """
     if not isinstance(episodes, list):
         raise ExportError("episodes must be a list")
+    # raw author feeds the owner_name fallback; each position escapes exactly once
+    author_raw = str(channel.get("author", ""))
     title = escape(str(channel.get("title", "Untitled column")))
     link = escape(str(channel.get("link", "")))
     description = escape(str(channel.get("description", "")))
-    author = escape(str(channel.get("author", "")))
+    author = escape(author_raw)
     language = escape(str(channel.get("language", "zh-cn")))
     category = escape(str(channel.get("category", "Technology")))
     image = channel.get("image")
     owner_email = escape(str(channel.get("owner_email", "")))
-    owner_name = escape(str(channel.get("owner_name", author)))
+    owner_name = escape(str(channel.get("owner_name", author_raw)))
 
     items: list[str] = []
     for ep in episodes:

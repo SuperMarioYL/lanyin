@@ -5,8 +5,8 @@ Commands:
   voice lock    clone/lock a MiniMax-H3 voice into .lanyin/voice-lock.json   (m1)
   voice show    print the locked column voice profile                         (m1)
   add           register an episode; ## headings become chapter marks         (pure)
-  build         synthesize an episode in the locked voice (m2 — roadmap)
-  export rss    emit 小宇宙/喜马拉雅-compliant RSS (m3 — roadmap)
+  build         synthesize an episode in the locked voice + ID3 chapters      (m2)
+  export rss    emit 小宇宙/喜马拉雅-compliant RSS from built episodes          (m3)
 """
 
 from __future__ import annotations
@@ -19,7 +19,8 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from . import __version__, chapter, export_rss, synth, voice_lock
+from . import __version__, chapter, export_rss, synth, tts_minimax, voice_lock
+from .chapter import ChapterError
 from .config import (
     ConfigError,
     episodes_path,
@@ -166,7 +167,11 @@ def add_cmd(
     # resolve so one file maps to one entry regardless of how it is spelled
     # (./ep01.md, ep01.md, /abs/ep01.md) or which cwd the command runs from.
     source = source.resolve()
-    chapters = chapter.parse_markdown_file(source, heading_level=cfg.chapter_heading_level)
+    try:
+        chapters = chapter.parse_markdown_file(source, heading_level=cfg.chapter_heading_level)
+    except ChapterError as exc:
+        err.print(f"[red]add failed:[/red] {exc}")
+        raise typer.Exit(code=1)
     registry = load_episodes()
     entry = {
         "source": str(source),
@@ -191,7 +196,7 @@ def add_cmd(
             console.print(f"  [dim]ch{idx:02d}[/dim]  {c.title}")
 
 
-# --- m2: build (stub) -------------------------------------------------------
+# --- m2: build ----------------------------------------------------------------
 
 
 @app.command("build")
@@ -200,12 +205,34 @@ def build_cmd(
         None, help="A .md file to build. Omit to batch-build all registered episodes."
     ),
 ) -> None:
-    """Synthesize an episode in the locked voice (m2 — not implemented yet)."""
+    """Synthesize an episode in the locked voice, embed ID3 chapters, write dist/."""
     try:
-        synth.synthesize_episode(source if source else ".")
-    except NotImplementedError as exc:
-        err.print(f"[yellow]m2 roadmap:[/yellow] {exc}")
-        raise typer.Exit(code=2)
+        if source:
+            episodes = [synth.synthesize_episode(source)]
+        else:
+            episodes = synth.synthesize_registered()
+    except (
+        synth.SynthError,
+        voice_lock.VoiceLockError,
+        ChapterError,
+        ConfigError,
+        tts_minimax.MiniMaxError,
+    ) as exc:
+        err.print(f"[red]build failed:[/red] {exc}")
+        raise typer.Exit(code=1)
+
+    table = Table(title="built episodes", show_header=True, header_style="bold green")
+    table.add_column("audio")
+    table.add_column("chapters")
+    table.add_column("duration (s)")
+    table.add_column("size")
+    for ep in episodes:
+        table.add_row(
+            ep.audio_path, str(len(ep.chapters)), f"{ep.duration_seconds:.2f}",
+            f"{ep.size_bytes:,}",
+        )
+    console.print(table)
+    console.print("\nNext: [cyan]lanyin export rss --platform xiaoyuzhou[/cyan]")
 
 
 # --- m3: export rss (stub) --------------------------------------------------
@@ -215,7 +242,7 @@ def build_cmd(
 def export_rss_cmd(
     platform: str = typer.Option("xiaoyuzhou", "--platform", "-p", help="xiaoyuzhou | ximalaya"),
 ) -> None:
-    """Emit 小宇宙/喜马拉雅-compliant RSS (m3 — not wired without built episodes)."""
+    """Emit 小宇宙/喜马拉雅-compliant RSS from built episodes (m3)."""
     try:
         out = export_rss.export_series(platform)
         console.print(f"[green]wrote[/green] {out}")

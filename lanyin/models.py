@@ -56,3 +56,5 @@ class Episode(BaseModel):
     source: str  # 公众号 URL or local .md path
     chapters: list[Chapter] = Field(default_factory=list)
     audio_path: str = ""  # MP3 with embedded ID3 chapters
+    size_bytes: int = 0  # encoded file size (registry + RSS enclosure length)
+    duration_seconds: float = 0.0  # total audio length

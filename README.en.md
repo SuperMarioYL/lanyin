@@ -11,7 +11,7 @@
 
 **Organize a column before narrating it**
 
-LanYin stores column configuration, extracts chapter titles from Markdown and registers episodes. It also provides a MiniMax client for recording a reusable voice profile; complete episode audio production remains unfinished.
+LanYin stores column configuration, extracts chapter titles from Markdown and registers episodes. It also provides a MiniMax client for recording a reusable voice profile; `lanyin build` synthesizes each chapter in the locked voice and embeds ID3 chapter marks into the episode MP3.
 
 ## Why use it
 
@@ -30,7 +30,7 @@ A serialized audio project needs consistent episode structure and a clear record
   <img src="./assets/presentation/architecture-light.svg" width="960" alt="Architecture diagram">
 </picture>
 
-config.py reads lanyin.toml and manages local registry files. chapter.py uses MarkdownIt to extract headings without raw emphasis syntax. The add command stores chapter data per source path. voice_lock.py uploads a selected reference through MiniMax and persists the resulting profile; synthesize_episode remains a NotImplementedError.
+config.py reads lanyin.toml and manages local registry files. chapter.py uses MarkdownIt to extract headings without raw emphasis syntax. The add command stores chapter data per resolved source path. voice_lock.py uploads a selected reference through MiniMax and persists the resulting profile; synthesize_episode synthesizes each chapter in the locked voice, concatenates the audio and embeds the chapter frames.
 
 | Component | Responsibility |
 | --- | --- |
@@ -101,7 +101,7 @@ The existing recording is retained for context; the text example above documents
 
 ## Usage
 
-Run init in the directory that will own lanyin.toml. add replaces the registry entry with the same source-path string, making repeated registration predictable. voice show prints an existing lock and exits 1 if none exists. To create one, configure the provider variables and use voice lock --sample ./voice.mp3 --name "Narrator" with a sample you are authorized to use.
+Run init in the directory that will own lanyin.toml. add replaces the registry entry for the same source file: paths are normalized, so ./ep01.md and an absolute path update one entry. voice show prints an existing lock and exits 1 if none exists. To create one, configure the provider variables and use voice lock --sample ./voice.mp3 --name "Narrator" with a sample you are authorized to use.
 
 ```bash
 lanyin init my-column --heading-level 2
@@ -111,7 +111,7 @@ lanyin voice show
 
 ## Configuration
 
-[column] defines column_id, column_name, chapter_heading_level (default 2) and platform_target (xiaoyuzhou or ximalaya). .lanyin/voice-lock.json stores the voice profile and .lanyin/episodes.json stores sources and chapter titles. MINIMAX_API_KEY is required for provider operations; MINIMAX_GROUP_ID is optional endpoint configuration. Chapter offsets start at zero because timed synthesis is not connected.
+[column] defines column_id, column_name, chapter_heading_level (default 2) and platform_target (xiaoyuzhou or ximalaya). .lanyin/voice-lock.json stores the voice profile and .lanyin/episodes.json stores sources and chapter titles. MINIMAX_API_KEY is required for provider operations; MINIMAX_GROUP_ID is optional endpoint configuration. After a build, chapter offsets come from the measured duration of each chapter's audio.
 
 ## Integrations and responsibilities
 
@@ -134,11 +134,11 @@ The local parser and registry work without API access. The voice-lock path requi
 
 ## Limits and next steps
 
-- lanyin build is a stub and returns exit 2. It does not generate chaptered MP3 files.
-- RSS export needs built episodes; the current add workflow does not produce them. Example RSS URLs are illustrative, not published audio.
+- lanyin build requires a voice lock and MINIMAX_API_KEY: it calls the provider once per chapter, so it cannot run in the offline examples.
+- RSS export needs built episodes. Example RSS URLs are illustrative, not published audio.
 - No voice quality, cross-episode consistency or platform ingestion was measured in the recorded example.
 
-Implemented: column setup, Markdown chapters, episode registry, provider client and voice-profile persistence. Next are chapter synthesis, timed ID3 frames, audio concatenation and a complete export workflow. Hosting, subscriptions and voice marketplaces are not implemented.
+Implemented: column setup, Markdown chapters, episode registry, provider client, voice-profile persistence and per-chapter synthesis (timed ID3 chapter frames and audio concatenation included). Hosting, subscriptions and voice marketplaces are not implemented.
 
 ## License and contributions
 
