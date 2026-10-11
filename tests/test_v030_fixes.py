@@ -75,7 +75,8 @@ def test_add_non_utf8_file_fails_cleanly(tmp_path: Path, monkeypatch) -> None:
     res = runner.invoke(app, ["add", "ep.md"])
 
     assert res.exit_code == 1
-    assert "valid UTF-8" in res.output
+    # rich wraps the message at 80 cols — compare whitespace-normalized
+    assert "valid UTF-8" in " ".join(res.output.split())
     # the clean ChapterError path, not a leaked UnicodeDecodeError
     assert not isinstance(res.exception, UnicodeDecodeError)
 
