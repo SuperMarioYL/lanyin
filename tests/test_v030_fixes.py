@@ -269,4 +269,6 @@ def test_version_lockstep_across_surfaces() -> None:
     assert "## [0.3.0] - 2026-10-12" in changelog
 
     site = json.loads((repo_root / "web" / "site.json").read_text(encoding="utf-8"))
-    assert site["meta"]["content_version"] == 1
+    # content_version is a monotonic site-refresh counter (bumped per docs
+    # commit), so pin only the seeded floor, not the current value
+    assert site["meta"]["content_version"] >= 1
