@@ -1,23 +1,23 @@
-"""RSS 2.0 + iTunes-namespace feed generation (m3 — partial).
+"""RSS 2.0 + iTunes-namespace feed generation.
 
 ``generate_rss`` is a pure, fully-tested helper that turns a list of episodes
 into a 小宇宙/喜马拉雅-compatible podcast RSS feed (the artifact the plan's
 ``assets.demo`` points at).
 
-``export_series`` is the m3 CLI surface: it loads *built* episodes from
-``dist/`` and writes ``dist/rss.xml``. Because episode building is m2 (not
-wired in this milestone), in m1 there are no built episodes to export, so the
-CLI reports the m3 roadmap honestly instead of emitting an empty feed.
+``export_series`` is the CLI surface: it loads *built* episodes (registry
+entries whose audio exists in ``dist/``) and writes ``dist/rss.xml`` in the
+platform given by ``--platform`` or, by default, the column's
+``platform_target``. It does not host the audio — enclosures keep their local
+``dist/<stem>.mp3`` path and the user uploads the files to the platform.
 """
 
 from __future__ import annotations
 
-import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from xml.sax.saxutils import escape
 
-from .config import dist_dir, episodes_path
+from .config import dist_dir, load_config, load_episodes
 from .models import Episode
 
 
@@ -93,7 +93,8 @@ def generate_rss(
     description = escape(str(channel.get("description", "")))
     author = escape(author_raw)
     language = escape(str(channel.get("language", "zh-cn")))
-    category = escape(str(channel.get("category", "Technology")))
+    # raw category feeds the attribute below, which escapes it exactly once
+    category = str(channel.get("category", "Technology"))
     image = channel.get("image")
     owner_email = escape(str(channel.get("owner_email", "")))
     owner_name = escape(str(channel.get("owner_name", author_raw)))
@@ -131,13 +132,32 @@ def generate_rss(
     )
 
 
+def _duration(value) -> str:
+    """Render an ``itunes:duration`` value.
+
+    The podcast spec accepts whole seconds or ``HH:MM:SS``, but a built
+    registry entry carries the measured length as a float, so numeric values
+    are rounded to whole seconds; caller-supplied strings ("642", "10:42")
+    pass through untouched.
+    """
+    if value is None or value == "":
+        return ""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return str(value)
+    return str(int(round(value)))
+
+
 def _render_item(ep: dict) -> str:
     # raw values feed the guid fallback; each position escapes exactly once
-    title_raw = str(ep.get("title", "Untitled episode"))
+    source = str(ep.get("source", ""))
+    # the registry records a source path but no episode title, so the file
+    # stem is the stable documented name for a registry-built episode
+    stem = Path(source).stem if source else ""
+    title_raw = str(ep.get("title") or stem or "Untitled episode")
     audio_raw = str(ep.get("audio_url", ep.get("audio_path", "")))
     title = escape(title_raw)
     audio_url = _attr(audio_raw)
-    duration = str(ep.get("duration", ep.get("duration_seconds", "")))
+    duration = _duration(ep.get("duration", ep.get("duration_seconds", "")))
     guid = escape(str(ep.get("guid", audio_raw or title_raw)))
     pub = escape(_iso(ep.get("pub_date", ep.get("published_at"))))
     desc = escape(str(ep.get("description", "")))
@@ -155,18 +175,20 @@ def _render_item(ep: dict) -> str:
 
 
 def export_series(
-    platform: str = "xiaoyuzhou",
+    platform: str | None = None,
     *,
     root: Path | str | None = None,
 ) -> Path:
-    """Load built episodes from ``dist/`` and write ``dist/rss.xml`` (m3).
+    """Load built episodes from ``dist/`` and write ``dist/rss.xml``.
 
-    Requires episodes built by ``lanyin build`` (m2) — i.e. registry entries
-    that carry a synthesized ``audio_path``. In m1 no episodes are built yet
-    (``add`` only registers the source + chapter titles), so this raises
-    ``ExportError`` pointing at the roadmap. The pure ``generate_rss`` helper
-    above is available and tested regardless.
+    ``platform`` defaults to the column's configured ``platform_target``
+    (``xiaoyuzhou`` when there is no config). Requires episodes built by
+    ``lanyin build`` — registry entries that carry a synthesized
+    ``audio_path``; ``add`` alone registers no audio, so an unbuilt column
+    raises ``ExportError`` telling the user to run the build first.
     """
+    cfg = load_config(root)
+    platform = platform or (cfg.platform_target if cfg else "xiaoyuzhou")
     if platform not in ("xiaoyuzhou", "ximalaya"):
         raise ExportError(
             f"unknown platform {platform!r} — choose xiaoyuzhou or ximalaya"
@@ -174,11 +196,9 @@ def export_series(
     registry = _load_built_episodes(root)
     if not registry:
         raise ExportError(
-            "no built episodes found — `lanyin build` (m2) is not implemented "
-            "in this milestone, so there is nothing to export yet. See the roadmap."
+            "no built episodes found — run `lanyin build` (or `lanyin build "
+            "<file>`) first; only episodes with audio in dist/ can be exported"
         )
-    from .config import load_config  # local import to avoid a cycle
-    cfg = load_config(root)
     channel = {
         "title": (cfg.column_name if cfg else f"{platform} column"),
         "link": "",
@@ -195,17 +215,14 @@ def export_series(
 
 
 def _load_built_episodes(root: Path | str | None = None) -> list[dict]:
-    """Read the episode registry and return only entries that have been built.
+    """Return the registry entries that have been built.
 
-    ``add`` registers source + chapter titles but no audio; ``build`` (m2)
-    fills ``audio_path``/``duration``/``size_bytes``. Only built entries are
-    exportable, so in m1 this always returns ``[]``.
+    ``add`` registers source + chapter titles but no audio; ``build`` fills in
+    ``audio_path``/``size_bytes``/``duration_seconds``. Only built entries are
+    exportable; ``load_episodes`` owns reading (and rejecting) the file.
     """
-    path = episodes_path(root)
-    if not path.exists():
-        return []
-    try:
-        registry = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:  # pragma: no cover - defensive
-        return []
-    return [e for e in registry if e.get("audio_path") or e.get("audio_url")]
+    return [
+        entry
+        for entry in load_episodes(root)
+        if entry.get("audio_path") or entry.get("audio_url")
+    ]

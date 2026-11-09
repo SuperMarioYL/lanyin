@@ -12,8 +12,9 @@ import json
 import re
 import tomllib
 from pathlib import Path
+from typing import Literal
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, Field, ValidationError
 
 CONFIG_FILENAME = "lanyin.toml"
 LOCK_DIRNAME = ".lanyin"
@@ -23,12 +24,18 @@ DIST_DIRNAME = "dist"
 
 
 class LanyinConfig(BaseModel):
-    """The column config written by ``lanyin init``."""
+    """The column config written by ``lanyin init``.
+
+    ``chapter_heading_level`` is an ATX heading level (1-6) and
+    ``platform_target`` is the export platform; both are validated here so an
+    out-of-range value cannot quietly produce an episode with zero chapters or
+    an unsupported export platform.
+    """
 
     column_id: str
     column_name: str
-    chapter_heading_level: int = 2
-    platform_target: str = "xiaoyuzhou"  # xiaoyuzhou | ximalaya
+    chapter_heading_level: int = Field(default=2, ge=1, le=6)
+    platform_target: Literal["xiaoyuzhou", "ximalaya"] = "xiaoyuzhou"
 
 
 class ConfigError(Exception):
@@ -125,12 +132,16 @@ def init_config(
     platform_target: str = "xiaoyuzhou",
     root: Path | str | None = None,
 ) -> LanyinConfig:
-    cfg = LanyinConfig(
-        column_id=column_id or slugify(column_name) or "column",
-        column_name=column_name,
-        chapter_heading_level=chapter_heading_level,
-        platform_target=platform_target,
-    )
+    try:
+        cfg = LanyinConfig(
+            column_id=column_id or slugify(column_name) or "column",
+            column_name=column_name,
+            chapter_heading_level=chapter_heading_level,
+            platform_target=platform_target,
+        )
+    except ValidationError as exc:
+        # an out-of-range flag value is a usage error, not a config file error
+        raise ConfigError(f"invalid column config: {exc.errors()[0]['msg']}") from exc
     write_config(cfg, root=root)
     # ensure the local state dir exists
     lock_dir(root).mkdir(parents=True, exist_ok=True)
@@ -141,13 +152,26 @@ def init_config(
 
 
 def load_episodes(root: Path | str | None = None) -> list[dict]:
+    """Read the episode registry, or ``[]`` when no episode is registered.
+
+    A registry file that exists but does not parse raises ``ConfigError`` — a
+    corrupt registry must never be read as "no episodes yet", because every
+    caller writes the list back and would silently drop the lost entries.
+    """
     path = episodes_path(root)
     if not path.exists():
         return []
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:  # pragma: no cover - defensive
-        return []
+        registry = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        raise ConfigError(f"corrupt episode registry at {path}: {exc}") from exc
+    if not isinstance(registry, list):
+        raise ConfigError(f"corrupt episode registry at {path}: expected a JSON list")
+    if not all(isinstance(entry, dict) for entry in registry):
+        raise ConfigError(
+            f"corrupt episode registry at {path}: every entry must be a JSON object"
+        )
+    return registry
 
 
 def save_episodes(episodes: list[dict], root: Path | str | None = None) -> Path:

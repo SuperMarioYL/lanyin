@@ -1,7 +1,8 @@
 # LanYin demo tape — the 10-minute happy path (m1 milestone).
 # Renders to assets/demo.gif. Drives the real `lanyin` binary; no API key needed
 # (voice lock needs MINIMAX_API_KEY, so the demo seeds a locked profile and
-# shows `voice show`, plus the honest m2/m3 roadmap messages).
+# shows `voice show`, while `build`/`export rss` report the missing key and the
+# unbuilt-episode error).
 # Re-render on demand: `vhs docs/demo.tape` (CI: .github/workflows/demo.yml).
 
 Output assets/demo.gif

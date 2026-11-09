@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-11-10
+
+### Fixed
+
+- `lanyin export rss` now writes usable episode items: a registry-built
+  episode without a stored title is titled from its source file stem instead of
+  `Untitled episode`, and a numeric `itunes:duration` is rounded to whole
+  seconds (the podcast spec allows whole seconds or `HH:MM:SS`, not `3.127`).
+- The `itunes:category` attribute is escaped exactly once. It was escaped in
+  `generate_rss` and then again when rendered as an XML attribute, so
+  `Science & Tech` decoded as `Science &amp; Tech` in feed readers.
+- `lanyin export rss` uses the column's `platform_target` when `--platform` is
+  omitted, so the documented config field now selects the export platform; an
+  explicit flag still overrides. Export failures also report through the normal
+  error channel with exit code 1 and point at the shipped `lanyin build`
+  command instead of claiming the build "is not implemented" and labelling
+  every failure with an obsolete m3-roadmap prefix.
+- Column config values are validated instead of silently accepted:
+  `chapter_heading_level` must be 1-6 and `platform_target` must be
+  `xiaoyuzhou` or `ximalaya`. Previously `lanyin init Demo --heading-level 0`
+  exited 0 and the next `lanyin add` registered an episode with zero chapters.
+- A corrupt `.lanyin/episodes.json` is reported as a clean `ConfigError`
+  instead of being read as "no episodes yet" and overwritten with a one-entry
+  registry, which silently discarded every previously registered episode.
+- Provider failures exit with the clean one-line error contract instead of a
+  raw traceback: `lanyin voice lock` catches the provider error, HTTP transport
+  failures are translated into `MiniMaxError` inside the client, and a
+  non-MP3 payload from the provider is reported as a `SynthError`.
+
 ## [0.3.0] - 2026-10-12
 
 ### Fixed

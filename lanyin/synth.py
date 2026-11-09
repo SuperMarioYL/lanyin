@@ -86,10 +86,22 @@ def embed_chapters(mp3_path: Path | str, chapters: list[Chapter]) -> int:
 
 
 def _audio_seconds(mp3_bytes: bytes) -> float:
-    """Length in seconds of an in-memory MP3 chunk."""
+    """Length in seconds of an in-memory MP3 chunk.
+
+    A provider error page or a different container format cannot be measured;
+    it is reported as a ``SynthError`` instead of leaking mutagen's
+    ``HeaderNotFoundError`` traceback through the CLI.
+    """
+    from mutagen import MutagenError  # type: ignore
     from mutagen.mp3 import MP3  # type: ignore
 
-    return float(MP3(io.BytesIO(mp3_bytes)).info.length)
+    try:
+        return float(MP3(io.BytesIO(mp3_bytes)).info.length)
+    except (MutagenError, EOFError) as exc:
+        raise SynthError(
+            "provider returned audio that is not a readable MP3 "
+            f"({type(exc).__name__}: {exc})"
+        ) from exc
 
 
 def _upsert_registry(episode: Episode, *, root: Path | None) -> None:

@@ -5,6 +5,6 @@ voice profile that survives across episodes, so every episode of one column
 sounds like the same narrator.
 """
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 __all__ = ["__version__"]

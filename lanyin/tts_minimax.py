@@ -71,6 +71,17 @@ class MiniMaxClient:
     def __exit__(self, *exc: Any) -> None:
         self.close()
 
+    def _post(self, path: str, **kwargs: Any) -> httpx.Response:
+        """POST to the provider, translating transport failures.
+
+        Connection/timeout/protocol errors are an unreachable provider, not a
+        crash: every caller expects the MiniMaxError channel.
+        """
+        try:
+            return self._client.post(path, **kwargs)
+        except httpx.HTTPError as exc:
+            raise MiniMaxError(f"MiniMax API request failed: {exc}") from exc
+
     # --- m1: voice clone --------------------------------------------------
 
     def clone_voice(self, sample: Path | str, *, voice_name: str) -> str:
@@ -88,7 +99,7 @@ class MiniMaxClient:
             data: dict[str, str] = {"voice_name": voice_name}
             if self._group_id:
                 data["group_id"] = self._group_id
-            resp = self._client.post("/voice_clone", files=files, data=data)
+            resp = self._post("/voice_clone", files=files, data=data)
         payload = _parse(resp)
         # schema_unverified: tolerate a few common field names.
         voice_id = (
@@ -100,12 +111,12 @@ class MiniMaxClient:
             raise MiniMaxError(f"voice clone succeeded but no voice_id in response: {payload}")
         return str(voice_id)
 
-    # --- m2: text→audio (called by synth.py once m2 is wired) --------------
+    # --- m2: text→audio (called by synth.synthesize_episode) ---------------
 
     def synthesize(self, text: str, *, voice_id: str) -> bytes:
         """Synthesize ``text`` in the locked voice; return MP3 bytes.
 
-        Called by synth.synthesize_episode (m2). Kept here so the only network
+        Called by synth.synthesize_episode. Kept here so the only network
         surface in LanYin is this file.
         """
         body: dict[str, Any] = {
@@ -116,7 +127,7 @@ class MiniMaxClient:
         }
         if self._group_id:
             body["group_id"] = self._group_id
-        resp = self._client.post("/t2a_v2", json=body)
+        resp = self._post("/t2a_v2", json=body)
         # the platform returns the audio either inline (base64) or as a URL.
         payload = _parse(resp, expect_audio=True)
         if isinstance(payload, (bytes, bytearray)):
@@ -126,7 +137,10 @@ class MiniMaxClient:
         audio = payload.get("audio") or payload.get("data", {}).get("audio")
         if isinstance(audio, str) and audio.startswith("http"):
             # fetch the generated MP3 from the returned URL
-            return httpx.get(audio, timeout=120.0).content
+            try:
+                return httpx.get(audio, timeout=120.0).content
+            except httpx.HTTPError as exc:
+                raise MiniMaxError(f"audio download failed: {exc}") from exc
         raise MiniMaxError(f"synthesize response had no audio payload: {payload}")
 
 

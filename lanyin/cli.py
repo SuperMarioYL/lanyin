@@ -73,11 +73,15 @@ def init_cmd(
     heading_level: int = typer.Option(2, "--heading-level", help="Markdown heading level that marks a chapter (## = 2)."),
 ) -> None:
     """Scaffold ``lanyin.toml`` for a new column."""
-    cfg = init_config(
-        column_name,
-        chapter_heading_level=heading_level,
-        platform_target=platform,
-    )
+    try:
+        cfg = init_config(
+            column_name,
+            chapter_heading_level=heading_level,
+            platform_target=platform,
+        )
+    except ConfigError as exc:
+        err.print(f"[red]init failed:[/red] {exc}")
+        raise typer.Exit(code=1)
     console.print(
         Panel.fit(
             f"[bold]column_id[/bold]      {cfg.column_id}\n"
@@ -107,7 +111,7 @@ def voice_lock_cmd(
     """Clone a MiniMax-H3 voice and persist the column lock (m1)."""
     try:
         lock = voice_lock.lock_voice(sample, name=name)
-    except (voice_lock.VoiceLockError, ConfigError) as exc:
+    except (voice_lock.VoiceLockError, ConfigError, tts_minimax.MiniMaxError) as exc:
         err.print(f"[red]voice lock failed:[/red] {exc}")
         raise typer.Exit(code=1)
     console.print(
@@ -172,7 +176,11 @@ def add_cmd(
     except ChapterError as exc:
         err.print(f"[red]add failed:[/red] {exc}")
         raise typer.Exit(code=1)
-    registry = load_episodes()
+    try:
+        registry = load_episodes()
+    except ConfigError as exc:
+        err.print(f"[red]add failed:[/red] {exc}")
+        raise typer.Exit(code=1)
     entry = {
         "source": str(source),
         "column_id": cfg.column_id,
@@ -235,20 +243,23 @@ def build_cmd(
     console.print("\nNext: [cyan]lanyin export rss --platform xiaoyuzhou[/cyan]")
 
 
-# --- m3: export rss (stub) --------------------------------------------------
+# --- m3: export rss ---------------------------------------------------------
 
 
 @export_app.command("rss")
 def export_rss_cmd(
-    platform: str = typer.Option("xiaoyuzhou", "--platform", "-p", help="xiaoyuzhou | ximalaya"),
+    platform: Optional[str] = typer.Option(
+        None, "--platform", "-p",
+        help="xiaoyuzhou | ximalaya (default: the column's platform_target).",
+    ),
 ) -> None:
     """Emit 小宇宙/喜马拉雅-compliant RSS from built episodes (m3)."""
     try:
         out = export_rss.export_series(platform)
         console.print(f"[green]wrote[/green] {out}")
-    except export_rss.ExportError as exc:
-        err.print(f"[yellow]m3 roadmap:[/yellow] {exc}")
-        raise typer.Exit(code=2)
+    except (export_rss.ExportError, ConfigError) as exc:
+        err.print(f"[red]export failed:[/red] {exc}")
+        raise typer.Exit(code=1)
 
 
 def main() -> None:

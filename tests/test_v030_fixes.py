@@ -1,12 +1,11 @@
 """v0.3.0 regression tests: RSS owner escaping, locale-independent pubDate,
-non-UTF-8 add path, the real episode build, and version lockstep."""
+non-UTF-8 add path, and the real episode build."""
 
 from __future__ import annotations
 
 import io
 import json
 import locale
-import tomllib
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -15,7 +14,6 @@ import pytest
 from mutagen.mp3 import MP3
 from typer.testing import CliRunner
 
-from lanyin import __version__
 from lanyin.chapter import parse_sections
 from lanyin.cli import app
 from lanyin.export_rss import _rfc822, generate_rss
@@ -251,24 +249,4 @@ def test_parse_sections_preamble_and_headings() -> None:
     assert parse_sections("", heading_level=2) == []
 
 
-# --- m12: version lockstep ------------------------------------------------------
-
-
-def test_version_lockstep_across_surfaces() -> None:
-    repo_root = Path(__file__).resolve().parent.parent
-    version_file = (repo_root / "VERSION").read_text(encoding="utf-8").strip()
-    pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))
-
-    assert version_file == "0.3.0"
-    assert pyproject["project"]["version"] == "0.3.0"
-    assert __version__ == "0.3.0"
-
-    changelog = (repo_root / "CHANGELOG.md").read_text(encoding="utf-8")
-    assert "## [0.1.0] - 2026-08-08" in changelog
-    assert "## [0.2.0] - 2026-09-10" in changelog
-    assert "## [0.3.0] - 2026-10-12" in changelog
-
-    site = json.loads((repo_root / "web" / "site.json").read_text(encoding="utf-8"))
-    # content_version is a monotonic site-refresh counter (bumped per docs
-    # commit), so pin only the seeded floor, not the current value
-    assert site["meta"]["content_version"] >= 1
+# version lockstep moved forward to tests/test_v040_fixes.py::test_version_lockstep_across_surfaces
